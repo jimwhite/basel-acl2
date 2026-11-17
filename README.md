@@ -15,7 +15,7 @@ successfully. See `VALIDATION.md` and `evidence/` for details.
 
 ## Origin
 
-This is a vibed attempt (ChatGPT Astra high) at implementing Matt Kaufman's question / suggestion for Ruben Gamboa's rump session talk at ACL2 Workshop 2026: *An Alternative Proof in ACL2(r) of Euler's Solution to the Basel Problem*.  The only part that I sort of understood was the idea to be able to use the proof done in ACL2(r) in regular ACL2 and that it involved the use of rational bounds rather than reals.
+This is a vibed attempt (ChatGPT Astra high) at implementing Matt Kaufmann's question / suggestion for Ruben Gamboa's rump session talk at ACL2 Workshop 2026: *An Alternative Proof in ACL2(r) of Euler's Solution to the Basel Problem*.  The only part that I sort of understood was the idea to be able to use the proof done in ACL2(r) in regular ACL2 and that it involved the use of rational bounds rather than reals.
 
 The ChatGPT session: https://chatgpt.com/share/6afccfd5-2fd0-83e8-969c-5b958e29943f
 
