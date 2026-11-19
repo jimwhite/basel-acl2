@@ -1,79 +1,95 @@
-# Validation of the ACL2-native transfer
+# Validation of the Basel development import
 
-Validated with ACL2 8.7 and ACL2 8.7(r), both built on SBCL 2.5.2.
-The source checkout was commit
-`330a2344fa44d08fbd5fbf24c4b44a7473c9803d`.
+This revision was validated with ACL2 8.7 and ACL2 8.7(r), built on SBCL 2.5.2.
+The source checkout was commit `330a2344fa44d08fbd5fbf24c4b44a7473c9803d`.
 Source and target used separate certificate directories.
 
-## Ordinary ACL2
+## Clarified local-event policy
 
-These books certified successfully:
+The following certified in both systems without trust tags:
+`transfer.lisp`, `transfer-tests.lisp`, and `development-tests.lisp`.
+The new tests verify that proof-only analytic locals are omitted, witnesses
+inside nontrivial encapsulates are retained, nested scopes do not hide unsafe
+definitions, and names from omitted helpers cannot enter exported definitions.
+Retained `defchoose` events remain unsupported.
 
-- `transfer.lisp` and `transfer-tests.lisp`, without trust tags.
-- `rational-defs.lisp` and `rational-proofs.lisp`, without trust tags.
-- `trusted-bridge.lisp`, `basel-rational.lisp`, and `demo.lisp`, allowing
-  only `:acl2r-checked-transfer`.
-- `example-import.lisp`, allowing only that tag. This exercises a nonempty
-  encapsulate, a rational local witness, a local helper and theorem, and an
-  ordinary ACL2 consequence of the exported constraint.
+`prepare-basel.lisp` certified in ACL2(r). Its new
+`r2a-prepare-basel-development` function generated two books:
 
-The final large-index example again used 63 prover steps. No enormous
-partial sum was evaluated.
+- `basel-analytic.lisp` certified without trust tags in 74.77 seconds,
+  using 688,176 prover steps. It proves the rational odd-sum bound using the
+  original finite analytic proof and the existing rational pi enclosure.
+- `basel-source.lisp` certified without trust tags in 1.19 seconds,
+  using 502 prover steps. It locally includes the analytic book inside
+  `r2a-export-development` and exports the rational interface.
 
-## ACL2(r)
+The receipt was written only after successful source certification and
+inclusion. It was byte-for-byte identical to the earlier `basel.r2a`.
+The mathematical interface has not changed; the new code enforces which
+local source events can be omitted.
 
-These books certified successfully without trust tags:
+## Ordinary ACL2 client
 
-- `transfer.lisp`
-- `transfer-tests.lisp`
-- `prepare-basel.lisp`
-- the ACL2-generated `basel-source.lisp`
+These books certified, allowing only `:acl2r-checked-transfer`:
 
-The generated source book took approximately 74 seconds and 688,176 prover
-steps in the final run. It includes the original finite analytic argument
-and proves `bq-fixed-odd-enclosure-export`. The receipt was written after
-successful source certification and inclusion.
+- `trusted-bridge.lisp`
+- `basel-rational.lisp`
+- `demo.lisp` (63 prover steps for the large-index demonstration)
+- `basel-interval.lisp` (1,478 prover steps)
+- `example-import.lisp`
 
-The small example also completed its source proofs and exported its receipt.
-The receipts from the final source run were byte-for-byte identical to those
-used for ordinary ACL2 certification.
+The unchanged `rational-defs.lisp` and `rational-proofs.lisp` retain their
+earlier certification without trust tags.
 
-## Rejection tests
+The new interval book proves rational endpoint types, enclosure of every
+positive partial sum, the exact width formula, and the following uniform
+numerical result for every integer N >= 10^20:
 
-`transfer-tests.lisp` certified in both systems. It covers:
+```
+1.644934066848226436 <= S_N <= 1.644934066848226437.
+```
 
-- Matt's local square-root witness, with both `sqrt` and `acl2-sqrt`.
-- A nested local encapsulate containing that witness.
-- A nonportable local theorem.
-- Unsupported macros, named constants, event generation, skipped proofs,
-  includes, and nonstandard definitions.
-- A signature without a direct local witness.
-- Local-name leakage after an encapsulate.
-- The invalid transfer of a later theorem about an already abstract function.
+The executable `bq-basel-interval` was loaded and evaluated in ordinary ACL2
+at N=10^20. It returns exact rational endpoints without evaluating S_N.
+Its width at that index is exactly
 
-`export-failure-tests.lsp` was run in ACL2(r). Its three expected failures
-were followed by successful assertions that no export was recorded:
-the rejected irrational witness, a false source theorem, and a source event
-that succeeds in the first pass but fails local-compatibility checking in
-the second. The log ends with
-`:ALL-EXPECTED-EXPORT-FAILURES-CHECKED`.
+```
+809439510239319549231 / 20000000000000000000000000000000000000000,
+```
 
-## Evidence and interpretation
+which is less than 10^-19.
 
-- `evidence/native-acl2-summary.log`: ordinary certification summaries.
-- `evidence/native-acl2r-summary.log`: source certification and export summaries.
-- `evidence/native-export-failures.log`: full expected-failure regression log.
+## Source execution regressions
 
-The summary files are excerpts, not proof certificates. Existing older
-`*.cert.out` files and `source-manifest.json` in `evidence/` describe the
-previous hard-coded bridge and Python adapter; they are historical evidence.
+`development-source-tests.lsp` completed with
+`:DEVELOPMENT-SOURCE-TESTS-PASSED`. It verified:
 
-This validation establishes successful admission and the tested rejection
-behavior. It does not verify the transfer algorithm's soundness or
-authenticate receipt provenance. Those remain explicit trust obligations;
-see [TRANSFER.md](TRANSFER.md). The source syntax and abstraction restrictions
-are intentional, and the mathematical result remains fixed precision.
+- A successful development can use a local irrational square-root helper.
+  Its recorded interface contains only the rational definitions and theorem.
+- A false local source theorem is actually attempted and rejected, even
+  though that local event would be omitted from the exported interface.
+- Matt's hidden irrational witness is rejected.
+- The real-valued `defchoose` counterexample is rejected.
+- A skipped local proof is detected by the AFTER-proof trust-state check,
+  and no export is recorded.
 
-Build products (`.cert`, `.fasl`, `.port`) are not committed. Rebuild them
-with the matching ACL2 executable. The import books include `depends-on`
-comments so `cert.pl` tracks receipt changes.
+The older source export and expected-failure tests were also rerun.
+The example receipt remained byte-for-byte identical, and the failure tests
+ended with `:ALL-EXPECTED-EXPORT-FAILURES-CHECKED`.
+
+## Evidence and limits
+
+- `evidence/basel-development-acl2r.log`: successful source certification summaries.
+- `evidence/basel-development-acl2.log`: successful target certification summaries.
+- `evidence/development-source-tests.log`: full expected-error regression log.
+
+Other evidence files describe earlier versions and are retained as history.
+Summary excerpts are not proof certificates. Build products are not committed;
+rebuild them using the matching ACL2 executable and certified system books.
+
+This verifies the admitted theorems and tested checking behavior. It does
+not prove the transfer algorithm's soundness or authenticate receipt
+provenance. Those remain explicit trust obligations, described in
+[TRANSFER.md](TRANSFER.md). The result uses a fixed rational pi enclosure;
+arbitrary-precision pi bounds and an exact rational-sequence formulation of
+the Basel identity are not implemented.

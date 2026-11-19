@@ -67,4 +67,54 @@
                      (state (r2a-write-forms forms channel state))
                      (state (close-output-channel channel state)))
                 (value :prepared))))))))))
+
+; Prepare two books. The first proves the rationalization in ACL2(r).
+; The second contains the actual development sent through the checked bridge:
+; rational definitions, a LOCAL analytic proof book, and a rational theorem.
+(defun r2a-write-book (book forms state)
+  (declare (xargs :stobjs state))
+  (mv-let (channel state)
+    (open-output-channel (concatenate 'string book ".lisp") :character state)
+    (if (not channel) (er soft 'r2a-prepare "Cannot write book ~x0." book)
+      (let* ((state (r2a-write-forms forms channel state))
+             (state (close-output-channel channel state)))
+        (value book)))))
+
+(defun r2a-prepare-basel-development
+  (upstream defs tail helper analytic-book transfer-book state)
+  (declare (xargs :stobjs state))
+  (er-let* ((source (r2a-read-file upstream state))
+            (definitions (r2a-read-file defs state))
+            (theorems (r2a-read-file tail state)))
+    (mv-let (err prefix) (r2a-basel-prefix source helper)
+      (let* ((theorem (car theorems))
+             (analytic-name 'bq-analytic-odd-enclosure)
+             (interface-theorem
+              `(defthm ,(cadr theorem) ,(caddr theorem)
+                 :hints (("Goal" :by ,analytic-name)) :rule-classes nil))
+             (events (append (cdr definitions)
+                             (list `(local (include-book ,analytic-book))
+                                   interface-theorem)))
+             (bad (r2a-interface-error (r2a-project-events events nil))))
+        (cond
+         ((not (and (equal (car definitions) '(in-package "ACL2"))
+                    (equal (len theorems) 1) (eq (car theorem) 'defthm)))
+          (er soft 'r2a-prepare "Unexpected definitions or export theorem."))
+         (err (er soft 'r2a-prepare "Unexpected source cutoff: ~x0" err))
+         (bad (er soft 'r2a-prepare "Nonportable retained interface: ~x0" bad))
+         (t
+          (er-let*
+              ((written-analytic
+                (r2a-write-book
+                 analytic-book
+                 (append definitions prefix
+                         (list (list* 'defthm analytic-name (cddr theorem))))
+                 state))
+               (written-transfer
+                (r2a-write-book
+                 transfer-book
+                 (list '(in-package "ACL2") '(include-book "transfer")
+                       (cons 'r2a-export-development (cons 'basel events)))
+                 state)))
+            (value (list written-analytic written-transfer)))))))))
 (logic)

@@ -174,6 +174,34 @@
                            (global-val 'event-number-baseline (w state))
                            (w state))))))
 
+; Discard proof-only LOCAL events outside nontrivial encapsulates. Inside a
+; nontrivial encapsulate retain EVERYTHING: in particular its witnesses.
+; The existing strict checker then checks this entire retained subtree.
+(mutual-recursion
+ (defun r2a-project-event (event inside-signature)
+   (cond
+    (inside-signature (list event))
+    ((and (true-listp event) (equal (len event) 2)
+          (eq (car event) 'local)) nil)
+    ((and (true-listp event) (<= 2 (len event))
+          (eq (car event) 'encapsulate))
+     (list (list* 'encapsulate (cadr event)
+                  (r2a-project-events (cddr event) (and (cadr event) t)))))
+    (t (list event))))
+ (defun r2a-project-events (events inside-signature)
+   (if (atom events) events
+     (append (r2a-project-event (car events) inside-signature)
+             (r2a-project-events (cdr events) inside-signature)))))
+
+(defun r2a-record-export (name events state)
+  (declare (xargs :stobjs state))
+  (cond ((not (r2a-clean-worldp state))
+         (er soft 'r2a-export
+             "The completed source proof used trust tags, skipped proofs, redefinition, or added axioms."))
+        ((r2a-interface-error events)
+         (er soft 'r2a-export "Invalid retained interface."))
+        (t (value `(table r2a-exports ',name ',(r2a-strip-proofs events))))))
+
 (defun r2a-write-receipt (path events state)
   (declare (xargs :stobjs state))
   (if (not (r2a-clean-worldp state))
@@ -196,10 +224,29 @@
            ; takes place in a separate top-level command, never in MAKE-EVENT.
            (value `(progn
                      (encapsulate () ,@events)
-                     (table r2a-exports ',name ',(r2a-strip-proofs events))))))))
+                     (make-event (r2a-record-export ',name ',events state))))))))
 
 (defmacro r2a-export (name &rest events)
   `(make-event (r2a-export-event ',name ',events state)))
+
+(defun r2a-export-development-event (name events state)
+  (declare (xargs :stobjs state))
+  (let* ((interface (r2a-project-events events nil))
+         (err (r2a-interface-error interface)))
+    (cond (err (er soft 'r2a-export-development
+                  "Rejected retained definitions, witnesses, or theorem: ~x0" err))
+          ((not (r2a-clean-worldp state))
+           (er soft 'r2a-export-development "Requires a clean ACL2(r) proof world."))
+          (t
+           (value
+            `(progn
+               ; Prove the ORIGINAL events, with their analytic local helpers.
+               (encapsulate () ,@events)
+               ; Only record after both passes and a fresh trust-state check.
+               (make-event (r2a-record-export ',name ',interface state))))))))
+
+(defmacro r2a-export-development (name &rest events)
+  `(make-event (r2a-export-development-event ',name ',events state)))
 
 (defun r2a-write-export (name path state)
   (declare (xargs :stobjs state))

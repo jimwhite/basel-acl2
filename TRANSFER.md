@@ -11,11 +11,15 @@ general book-import design, nor a verified conservativity theorem.
 The analytic proof world may contain pi, square roots, nonstandard analysis,
 and its own encapsulates. It is never loaded into ordinary ACL2.
 
-The **portable interface** is the explicit event sequence supplied to
-`r2a-export`. Every event in that sequence is checked, including events under
-arbitrarily nested LOCAL and ENCAPSULATE. Proof hints may refer to the analytic
-world, but hints are discarded when exporting. The bodies of definitions and
-the formulas of theorems cannot refer to unchecked analytic functions.
+The **portable interface** is the retained event sequence computed by
+`r2a-export-development`. A LOCAL event outside a nontrivial encapsulate is
+omitted from that interface, including inside trivial encapsulates. Inside a
+nontrivial encapsulate, the complete event subtree is retained and checked,
+including all local witnesses and nested scopes. Proof hints may refer to
+the analytic world, but hints are discarded when exporting. The bodies of
+retained definitions and formulas of retained theorems cannot refer to
+unchecked analytic functions. The older `r2a-export` entry point remains
+available for an explicitly supplied interface with no projection.
 
 Thus the checker is not claiming that every local event in Ruben's analytic
 proof is portable. It checks every local event of the interface actually
@@ -43,7 +47,9 @@ In particular, the interface does not accept `include-book`, `make-event`,
 `skip-proofs`, or raw Lisp. A surrounding source proof book may use normal
 ACL2(r) facilities to prove the interface statements.
 
-This is stricter than ACL2(r)'s technical `classicalp` property: being
+This implements the Basel case, with a conservative supported fragment;
+it is not a claim that Matt's tentative criterion is sufficient in general.
+The test is stricter than ACL2(r)'s technical `classicalp` property: being
 classical does not imply that a function returns rational results on rational
 inputs. Square root is the relevant example.
 
@@ -90,16 +96,19 @@ abstract function already in the source world.
 
 ## Source proof and target proof
 
-`r2a-export` checks the complete interface before executing it. It then runs
-the source events normally inside an encapsulate, and records the interface
-only after both passes succeed. A local-incompatibility failure cannot record
-a new export. Source checks reject skipped proofs, trust tags, redefinitions,
-and nonconstructive axioms added after the ACL2(r) bootstrap.
+`r2a-export-development` checks the projected interface before executing the
+original source events. Those source events, including omitted local proof
+steps, must succeed normally inside an encapsulate. It records the interface
+only after both passes succeed and a fresh trust-state check succeeds. A
+false local theorem, local-incompatibility failure, or skipped local proof
+cannot produce a new export. Source checks reject skipped proofs, trust tags,
+redefinitions, and nonconstructive axioms added after the ACL2(r) bootstrap.
 
 File output is a separate top-level `r2a-write-export` command after source
 certification. No trust tag is used to write files inside MAKE-EVENT.
-The receipt keeps definitions, constraints, and local events; only source
-proof hints and rule-class settings are stripped.
+The receipt keeps the retained definitions, constraints, and local events
+inside nontrivial encapsulates. Source proof hints and rule-class settings
+are stripped; discarded analytic helpers never enter the receipt.
 
 The target checks the receipt again. It admits definitions normally and
 builds a local predicate for each theorem. A local trusted clause processor
@@ -135,3 +144,25 @@ all subsequent rational proofs, conditional on those trust obligations.
 The tag and explicit checks reduce and expose the trusted work; they do not
 eliminate it. Extending the accepted syntax or abstract-function policy needs
 a fresh soundness review and tests.
+
+## Concrete Basel development
+
+The generated `basel-analytic` book proves `bq-analytic-odd-enclosure` from
+Ruben's finite analytic bounds and the existing rational bounds on pi. The
+generated `basel-source` book supplies the shared rational definitions,
+locally includes that analytic book, and proves
+`bq-fixed-odd-enclosure-export` by that analytic theorem, all inside
+`r2a-export-development`.
+
+Projection removes the local analytic include. The retained interface has
+only concrete rational definitions and a rational theorem: no nontrivial
+encapsulate, no choice function, no real-valued function. The regenerated
+receipt is byte-for-byte identical to the earlier rational interface. The
+change is that the source proof can now include its local analytic material
+directly in the checked development, with the omission policy enforced by
+ACL2 code rather than manually separating that interface.
+
+`basel-interval` is an ordinary ACL2 client of the imported bound. Its interval
+is `[L^2/6-3/N, U^2/6]`; the enclosure theorem and width theorem are ordinary
+proofs. Fixed endpoints L and U impose an error floor. This does not implement
+arbitrary-precision pi enclosures or assert an irrational limit in ACL2.

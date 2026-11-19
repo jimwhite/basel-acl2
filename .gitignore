@@ -6,3 +6,4 @@
 *.acl2x
 *@expansion.lsp
 basel-source.lisp
+basel-analytic.lisp

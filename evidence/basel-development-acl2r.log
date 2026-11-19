@@ -1,0 +1,154 @@
+Summary
+Form:  (CERTIFY-BOOK "transfer" ...)
+Rules: NIL
+Time:  0.54 seconds (prove: 0.00, print: 0.00, other: 0.54)
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/transfer.lisp"
+ACL2(r) !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2(r) !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/validation/basel-
+development-real/transfer-tests.port.
+
+Summary
+Form:  (CERTIFY-BOOK "transfer-tests" ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/transfer-tests.lisp"
+ACL2(r) !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2(r) !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/validation/basel-
+development-real/development-tests.port.
+
+Summary
+Form:  (CERTIFY-BOOK "development-tests" ...)
+Rules: NIL
+Time:  0.03 seconds (prove: 0.00, print: 0.00, other: 0.03)
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/development-tests.lisp"
+ACL2(r) !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2(r) !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/validation/basel-
+development-real/prepare-basel.port.
+
+Summary
+Form:  (CERTIFY-BOOK "prepare-basel" ...)
+Rules: NIL
+Time:  0.22 seconds (prove: 0.00, print: 0.00, other: 0.22)
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/prepare-basel.lisp"
+ACL2(r) !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2(r) !>
+Summary
+Form:  ( INCLUDE-BOOK "prepare-basel" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/prepare-basel.lisp"
+ACL2(r) !> ("basel-analytic" "basel-source")
+ACL2(r) !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+* 
+
+Summary
+Form:  ( DEFTHM BQ-ANALYTIC-ODD-ENCLOSURE ...)
+Rules: ((:COMPOUND-RECOGNIZER POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION BQ-FIXED-ODD-ENCLOSURE)
+        (:DEFINITION BQ-ODD-ENCLOSUREP)
+        (:DEFINITION NOT)
+        (:DEFINITION POSP)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART ABS)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART BQ-PI-HI)
+        (:EXECUTABLE-COUNTERPART BQ-PI-LO)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART FIX)
+        (:EXECUTABLE-COUNTERPART INTEGERP)
+        (:EXECUTABLE-COUNTERPART M-PI)
+        (:EXECUTABLE-COUNTERPART M-PI+EPS)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART RATIONALP)
+        (:EXECUTABLE-COUNTERPART REALP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:LINEAR EXPT-LINEAR-UPPER-<=)
+        (:REWRITE |(* (* x y) z)|)
+        (:REWRITE |(* (/ c) (expt d n))|)
+        (:REWRITE |(* 0 x)|)
+        (:REWRITE |(* 1 x)|)
+        (:REWRITE |(* c (* d x))|)
+        (:REWRITE |(* x (+ y z))|)
+        (:REWRITE |(* x (- y))|)
+        (:REWRITE |(* y x)|)
+        (:REWRITE |(+ (* c x) (* d x))|)
+        (:REWRITE |(+ 0 x)|)
+        (:REWRITE |(+ c (+ d x))|)
+        (:REWRITE |(+ x (- x))|)
+        (:REWRITE |(+ y (+ x z))|)
+        (:REWRITE |(+ y x)|)
+        (:REWRITE |(- (* c x))|)
+        (:REWRITE |(- (+ x y))|)
+        (:REWRITE |(/ (expt x n))|)
+        (:REWRITE BUBBLE-DOWN-*-MATCH-1)
+        (:REWRITE BUBBLE-DOWN-+-MATCH-1)
+        (:REWRITE NORMALIZE-ADDENDS)
+        (:REWRITE NORMALIZE-FACTORS-GATHER-EXPONENTS)
+        (:REWRITE PREFER-POSITIVE-ADDENDS-<)
+        (:REWRITE |arith (* (* x y) z)|)
+        (:REWRITE |arith (* -1 x)|)
+        (:REWRITE |arith (* 1 x)|)
+        (:REWRITE |arith (* c (* d x))|)
+        (:REWRITE |arith (* x 1)|)
+        (:REWRITE |arith (* y (* x z))|)
+        (:REWRITE |arith (expt x (+ m n)) non-zero x|)
+        (:REWRITE |arith (expt x 0)|)
+        (:REWRITE |arith (expt x c)|)
+        (:TYPE-PRESCRIPTION ACL2-PI-TYPE-PRESCRIPTION)
+        (:TYPE-PRESCRIPTION EXPT-TYPE-PRESCRIPTION-INTEGERP-BASE-A)
+        (:TYPE-PRESCRIPTION EXPT-TYPE-PRESCRIPTION-NONNEGATIVE-BASE)
+        (:TYPE-PRESCRIPTION
+             EXPT-TYPE-PRESCRIPTION-NONNEGATIVE-BASE-REAL-CASE)
+        (:TYPE-PRESCRIPTION EXPT-TYPE-PRESCRIPTION-POSITIVE-BASE-REAL-CASE)
+        (:TYPE-PRESCRIPTION REALP-BASEL-ODDS))
+Hint-events: ((:USE BIG-LOWER-BOUND-LEMMA-SPECIALIZED-3)
+              (:USE BIG-UPPER-BOUND-LEMMA-SPECIALIZED-6)
+              (:USE PI-TIGHT-BOUND))
+Splitter rules (see :DOC splitter):
+  if-intro: ((:DEFINITION BQ-ODD-ENCLOSUREP)
+             (:DEFINITION NOT))
+Warnings:  Use
+Time:  0.34 seconds (prove: 0.34, print: 0.00, other: 0.01)
+Prover steps counted:  19715
+BQ-ANALYTIC-ODD-ENCLOSURE
+
+Summary
+Form:  (CERTIFY-BOOK "basel-analytic" ...)
+Rules: NIL
+Warnings:  Guards, Free, Use, Theory, Subsume and Non-rec
+Time:  74.77 seconds (prove: 70.44, print: 0.05, other: 4.28)
+Prover steps counted:  688176
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/basel-analytic.lisp"
+ACL2(r) !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2(r) !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/validation/basel-
+development-real/basel-source.port.
+
+Summary
+Form:  (CERTIFY-BOOK "basel-source" ...)
+Rules: NIL
+Warnings:  Guards
+Time:  1.19 seconds (prove: 0.00, print: 0.00, other: 1.18)
+Prover steps counted:  502
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/basel-source.lisp"
+ACL2(r) !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2(r) !>
+Summary
+Form:  ( INCLUDE-BOOK "basel-source" ...)
+Rules: NIL
+Time:  0.10 seconds (prove: 0.00, print: 0.00, other: 0.10)
+ "/workspace/scratch/fbe6ac8cde8b/validation/basel-development-real/basel-source.lisp"
+ACL2(r) !> :R2A-EXPORTED
+ACL2(r) !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+* 
+

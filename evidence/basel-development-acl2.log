@@ -1,0 +1,213 @@
+Summary
+Form:  (CERTIFY-BOOK "transfer" ...)
+Rules: NIL
+Time:  0.24 seconds (prove: 0.00, print: 0.00, other: 0.24)
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/transfer.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/transfer-tests.port.
+
+Summary
+Form:  (CERTIFY-BOOK "transfer-tests" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/transfer-tests.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/development-tests.port.
+
+Summary
+Form:  (CERTIFY-BOOK "development-tests" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/development-tests.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/trusted-bridge.port.
+
+Summary
+Form:  (CERTIFY-BOOK "trusted-bridge" ...)
+Rules: NIL
+Warnings:  Guards
+Time:  0.04 seconds (prove: 0.00, print: 0.00, other: 0.04)
+Prover steps counted:  397
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/trusted-bridge.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/basel-rational.port.
+
+Summary
+Form:  (CERTIFY-BOOK "basel-rational" ...)
+Rules: NIL
+Warnings:  Guards, Disable, Theory and Non-rec
+Time:  0.90 seconds (prove: 0.16, print: 0.00, other: 0.73)
+Prover steps counted:  1904
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/basel-rational.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/demo.port.
+
+Summary
+Form:  ( DEFTHM BQ-BASEL-INTERVAL-IS-RATIONAL ...)
+Rules: ((:DEFINITION BQ-BASEL-INTERVAL)
+        (:DEFINITION POSP)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART BQ-PI-HI)
+        (:EXECUTABLE-COUNTERPART BQ-PI-LO)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART RATIONALP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART UNARY-/)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE |(* x (if a b c))|)
+        (:REWRITE |(+ x (if a b c))|)
+        (:REWRITE |(- (* c x))|)
+        (:REWRITE |(- (if a b c))|)
+        (:REWRITE |(/ (if a b c))|)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS))
+Warnings:  Non-rec
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  152
+BQ-BASEL-INTERVAL-IS-RATIONAL
+
+Summary
+Form:  ( DEFTHM BQ-BASEL-INTERVAL-ENCLOSES-PARTIAL-SUM ...)
+Rules: ((:COMPOUND-RECOGNIZER POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION BQ-BASEL-INTERVAL)
+        (:DEFINITION NOT)
+        (:DEFINITION POSP)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART BQ-PI-HI)
+        (:EXECUTABLE-COUNTERPART BQ-PI-LO)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART UNARY-/)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE |(* 0 x)|)
+        (:REWRITE |(+ (* c x) (* d x))|)
+        (:REWRITE |(+ y (+ x z))|)
+        (:REWRITE |(+ y x)|)
+        (:REWRITE |(- (* c x))|)
+        (:REWRITE BUBBLE-DOWN-+-MATCH-1)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE NORMALIZE-ADDENDS)
+        (:REWRITE PREFER-POSITIVE-ADDENDS-<)
+        (:TYPE-PRESCRIPTION BQ-SUM))
+Hint-events: ((:USE BQ-FIXED-ALL-PARTIAL-SUMS-BOUND))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.01)
+Prover steps counted:  347
+BQ-BASEL-INTERVAL-ENCLOSES-PARTIAL-SUM
+
+Summary
+Form:  ( DEFTHM BQ-BASEL-INTERVAL-WIDTH-EXACT ...)
+Rules: ((:COMPOUND-RECOGNIZER POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION BQ-BASEL-INTERVAL)
+        (:DEFINITION BQ-BASEL-INTERVAL-WIDTH)
+        (:DEFINITION POSP)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART BQ-PI-HI)
+        (:EXECUTABLE-COUNTERPART BQ-PI-LO)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE |(+ c (+ d x))|)
+        (:REWRITE |(+ y (+ x z))|)
+        (:REWRITE |(- (* c x))|)
+        (:REWRITE |(- (+ x y))|)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS))
+Warnings:  Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  158
+BQ-BASEL-INTERVAL-WIDTH-EXACT
+
+Summary
+Form:  ( DEFTHM BQ-BASEL-DECIMAL-ENCLOSURE ...)
+Rules: ((:COMPOUND-RECOGNIZER POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION NOT)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART BQ-PI-HI)
+        (:EXECUTABLE-COUNTERPART BQ-PI-LO)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART UNARY-/)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE |(* 0 x)|)
+        (:REWRITE |(+ (* c x) (* d x))|)
+        (:REWRITE |(+ y (+ x z))|)
+        (:REWRITE |(+ y x)|)
+        (:REWRITE |(- (* c x))|)
+        (:REWRITE BUBBLE-DOWN-+-MATCH-1)
+        (:REWRITE NORMALIZE-ADDENDS)
+        (:REWRITE PREFER-POSITIVE-ADDENDS-<)
+        (:TYPE-PRESCRIPTION BQ-SUM)
+        (:TYPE-PRESCRIPTION NOT-INTEGERP-4B))
+Hint-events: ((:USE BQ-FIXED-ALL-PARTIAL-SUMS-BOUND))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  320
+BQ-BASEL-DECIMAL-ENCLOSURE
+
+Summary
+Form:  ( DEFTHM BQ-BASEL-INTERVAL-WIDTH-AT-10-TO-20 ...)
+Rules: ((:COMPOUND-RECOGNIZER POSP-COMPOUND-RECOGNIZER)
+        (:DEFINITION NOT)
+        (:DEFINITION SYNP)
+        (:EXECUTABLE-COUNTERPART <)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART BQ-PI-HI)
+        (:EXECUTABLE-COUNTERPART BQ-PI-LO)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE |(* c (* d x))|)
+        (:REWRITE |(* x (+ y z))|)
+        (:REWRITE |(* y (* x z))|)
+        (:REWRITE |(* y x)|)
+        (:REWRITE |(< x (/ y)) with (< 0 y)|)
+        (:REWRITE BQ-BASEL-INTERVAL-WIDTH-EXACT)
+        (:TYPE-PRESCRIPTION NOT-INTEGERP-1B))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  501
+BQ-BASEL-INTERVAL-WIDTH-AT-10-TO-20
+
+Summary
+Form:  (CERTIFY-BOOK "basel-interval" ...)
+Rules: NIL
+Warnings:  Guards and Non-rec
+Time:  0.94 seconds (prove: 0.03, print: 0.00, other: 0.91)
+Prover steps counted:  1478
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/basel-interval.lisp"
+ACL2 !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+* 
+
+Summary
+Form:  (CERTIFY-BOOK "example-import" ...)
+Rules: NIL
+Warnings:  Guards
+Time:  0.10 seconds (prove: 0.01, print: 0.00, other: 0.09)
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/example-import.lisp"
+ACL2 !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+* 
+
