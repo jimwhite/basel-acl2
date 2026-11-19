@@ -1,0 +1,21 @@
+{
+  "name": "Basel target: ordinary ACL2 (SBCL 2.6.10, ACL2 master)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "args": {
+      "ACL2_FLAVOR": "acl2",
+      "SBCL_VERSION": "2.6.10",
+      "ACL2_REF": "master"
+    }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb", "storage": "32gb" },
+  "remoteUser": "vscode",
+  "containerEnv": { "ACL2": "/opt/acl2/saved_acl2" },
+  "postCreateCommand": "echo \"ACL2 commit: $(cat /opt/acl2/ACL2_COMMIT)\"; sbcl --version",
+  "customizations": {
+    "vscode": {
+      "extensions": ["mattn.lisp"]
+    }
+  }
+}

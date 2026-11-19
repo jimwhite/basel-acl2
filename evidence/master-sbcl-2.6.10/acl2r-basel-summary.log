@@ -1,0 +1,30 @@
+; ACL2(r) built from acl2/acl2 master 043ce2f2e51aa3dd7fde519be0b1091d7bc4077a
+; with books/nonstd from 330a2344fa44d08fbd5fbf24c4b44a7473c9803d (acl2r-context), SBCL 2.6.10.
+; Produced by scripts/acl2r-reproduce.sh in .devcontainer/acl2r. Certification summaries:
+Form:  (CERTIFY-BOOK "transfer" ...)
+Time:  0.15 seconds (prove: 0.00, print: 0.00, other: 0.15)
+ "/workspaces/basel-acl2/build/acl2r/transfer.lisp"
+Form:  (CERTIFY-BOOK "transfer-tests" ...)
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspaces/basel-acl2/build/acl2r/transfer-tests.lisp"
+Form:  (CERTIFY-BOOK "development-tests" ...)
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspaces/basel-acl2/build/acl2r/development-tests.lisp"
+Form:  (CERTIFY-BOOK "prepare-basel" ...)
+Time:  0.07 seconds (prove: 0.00, print: 0.00, other: 0.07)
+ "/workspaces/basel-acl2/build/acl2r/prepare-basel.lisp"
+Form:  (CERTIFY-BOOK "/opt/acl2/books/nonstd/basel/complex-helper"
+Time:  1.24 seconds (prove: 0.28, print: 0.00, other: 0.95)
+Prover steps counted:  16088
+ "/opt/acl2/books/nonstd/basel/complex-helper.lisp"
+Form:  (CERTIFY-BOOK "basel-analytic" ...)
+Time:  54.68 seconds (prove: 51.98, print: 0.06, other: 2.65)
+Prover steps counted:  688176
+ "/workspaces/basel-acl2/build/acl2r/basel-analytic.lisp"
+Form:  (CERTIFY-BOOK "basel-source" ...)
+Time:  0.82 seconds (prove: 0.00, print: 0.00, other: 0.81)
+Prover steps counted:  502
+ "/workspaces/basel-acl2/build/acl2r/basel-source.lisp"
+
+; (r2a-write-export 'basel "new-basel.r2a" state) returned :R2A-EXPORTED.
+; new-basel.r2a was byte-for-byte identical to the distributed basel.r2a.

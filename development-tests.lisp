@@ -1,12 +1,15 @@
 (in-package "ACL2")
 (include-book "transfer")
+; Quoted INCLUDE-BOOK data below is split across lines so that cert.pl does
+; not treat it as a dependency (cert.pl scans text, not code).
 
 ; Proof-only analytic locals are projected away, including through a trivial
 ; encapsulate. They are still submitted to the source prover unchanged.
 (assert-event
  (equal
   (r2a-project-events
-   '((local (include-book "nonstd/nsa/sqrt" :dir :system))
+   '((local (include-book
+            "nonstd/nsa/sqrt" :dir :system))
      (encapsulate ()
        (local (defun scratch-root () (acl2-sqrt 2)))
        (defun rational-endpoint () 3/2))) nil)
@@ -15,7 +18,8 @@
  (not
   (r2a-interface-error
    (r2a-project-events
-    '((local (include-book "nonstd/nsa/sqrt" :dir :system))
+    '((local (include-book
+            "nonstd/nsa/sqrt" :dir :system))
       (defun rational-endpoint () 3/2)
       (defthm endpoint-rational (rationalp (rational-endpoint)))) nil))))
 
@@ -48,7 +52,8 @@
 (assert-event
  (r2a-interface-error
   (r2a-project-events
-   '((local (include-book "nonstd/nsa/sqrt" :dir :system))
+   '((local (include-book
+            "nonstd/nsa/sqrt" :dir :system))
      (defchoose chosen-root (x) () (equal (* x x) 2))
      (defthm bad (equal (* (chosen-root) (chosen-root)) 2))) nil)))
 

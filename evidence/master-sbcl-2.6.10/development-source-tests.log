@@ -1,0 +1,480 @@
+This is SBCL 2.6.10, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7(r)+ (a development snapshot based on ACL2 Version 8.7(r)) +
+ +   built November 19, 2026  18:03:58.                                 +
+ +   (Note from the environment when this executable was saved:         +
+ +    Git commit hash: 043ce2f2e51aa3dd7fde519be0b1091d7bc4077a)        +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>> "ACL2"
+ACL2(r) !>>
+Summary
+Form:  ( INCLUDE-BOOK "transfer" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspaces/basel-acl2/build/acl2r/transfer.lisp"
+ACL2(r) !>>
+
+ACL2(r) !>>>(ENCAPSULATE NIL
+              (LOCAL (INCLUDE-BOOK "nonstd/nsa/sqrt"
+                                   :DIR :SYSTEM))
+              (LOCAL (DEFUN LOCAL-ROOT NIL (ACL2-SQRT 2)))
+              (LOCAL (DEFTHM LOCAL-ROOT-SQUARED
+                       (EQUAL (* (LOCAL-ROOT) (LOCAL-ROOT)) 2)
+                       :HINTS (("Goal" :USE ((:INSTANCE SQRT-SQRT (X 2)))
+                                       :IN-THEORY (DISABLE ACL2-SQRT)))))
+              (DEFUN RATIONAL-TWO NIL 2)
+              (DEFTHM RATIONAL-TWO-POSITIVE
+                (< 0 (RATIONAL-TWO))))
+
+To verify that the five encapsulated events correctly extend the current
+theory we will evaluate them.  The theory thus constructed is only
+ephemeral.
+
+Encapsulated Events:
+
+
+ACL2(r) !>>>(LOCAL (INCLUDE-BOOK "nonstd/nsa/sqrt"
+                                 :DIR :SYSTEM))
+
+Summary
+Form:  ( INCLUDE-BOOK "nonstd/nsa/sqrt" ...)
+Rules: NIL
+Time:  0.08 seconds (prove: 0.00, print: 0.00, other: 0.08)
+"/opt/acl2/books/nonstd/nsa/sqrt.lisp"
+
+
+ACL2(r) !>>>(LOCAL (DEFUN LOCAL-ROOT NIL (ACL2-SQRT 2)))
+
+Since LOCAL-ROOT is non-recursive, its admission is trivial.  We observe
+that the type of LOCAL-ROOT is described by the theorem 
+(AND (REALP (LOCAL-ROOT)) (<= 0 (LOCAL-ROOT))).  We used the :type-
+prescription rule ACL2-SQRT.
+
+Summary
+Form:  ( DEFUN LOCAL-ROOT ...)
+Rules: ((:TYPE-PRESCRIPTION ACL2-SQRT))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+LOCAL-ROOT
+
+
+ACL2(r) !>>>(LOCAL (DEFTHM LOCAL-ROOT-SQUARED
+                     (EQUAL (* (LOCAL-ROOT) (LOCAL-ROOT)) 2)
+                     :HINTS (("Goal" :USE ((:INSTANCE SQRT-SQRT (X 2)))
+                                     :IN-THEORY (DISABLE ACL2-SQRT)))))
+
+ACL2 Warning [Non-rec] in ( DEFTHM LOCAL-ROOT-SQUARED ...):  A :REWRITE
+rule generated from LOCAL-ROOT-SQUARED will be triggered only by terms
+containing the function symbol LOCAL-ROOT, which has a non-recursive
+definition.  Unless this definition is disabled, this rule is unlikely
+ever to be used.
+
+
+ACL2 Warning [Subsume] in ( DEFTHM LOCAL-ROOT-SQUARED ...):  The previously
+added rule COMMUTATIVITY-OF-* subsumes a newly proposed :REWRITE rule
+generated from LOCAL-ROOT-SQUARED, in the sense that the old rule rewrites
+a more general target.  Because the new rule will be tried first, it
+may nonetheless find application.
+
+
+ACL2 Warning [Use] in ( DEFTHM LOCAL-ROOT-SQUARED ...):  It is unusual
+to :USE the formula of an enabled :REWRITE or :DEFINITION rule, so
+you may want to consider disabling (:REWRITE SQRT-SQRT) in the hint
+provided for Goal.  See :DOC using-enabled-rules.
+
+Goal'
+
+Q.E.D.
+
+Summary
+Form:  ( DEFTHM LOCAL-ROOT-SQUARED ...)
+Rules: ((:DEFINITION LOCAL-ROOT)
+        (:DEFINITION NOT)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM))
+Hint-events: ((:USE SQRT-SQRT))
+Warnings:  Use, Subsume and Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  33
+LOCAL-ROOT-SQUARED
+
+
+ACL2(r) !>>>(DEFUN RATIONAL-TWO NIL 2)
+
+Since RATIONAL-TWO is non-recursive, its admission is trivial.  We
+observe that the type of RATIONAL-TWO is described by the theorem 
+(AND (INTEGERP (RATIONAL-TWO)) (< 1 (RATIONAL-TWO))).  
+
+Summary
+Form:  ( DEFUN RATIONAL-TWO ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+RATIONAL-TWO
+
+
+ACL2(r) !>>>(DEFTHM RATIONAL-TWO-POSITIVE
+              (< 0 (RATIONAL-TWO)))
+
+ACL2 Warning [Non-rec] in ( DEFTHM RATIONAL-TWO-POSITIVE ...):  A :REWRITE
+rule generated from RATIONAL-TWO-POSITIVE will be triggered only by
+terms containing the function symbol RATIONAL-TWO, which has a non-
+recursive definition.  Unless this definition is disabled, this rule
+is unlikely ever to be used.
+
+
+Q.E.D.
+
+The storage of RATIONAL-TWO-POSITIVE depends upon primitive type reasoning
+and the :type-prescription rule RATIONAL-TWO.
+
+Summary
+Form:  ( DEFTHM RATIONAL-TWO-POSITIVE ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION RATIONAL-TWO))
+Warnings:  Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+RATIONAL-TWO-POSITIVE
+
+End of Encapsulated Events.
+
+Having verified that the encapsulated events validate the signatures
+of the ENCAPSULATE event, we discard the ephemeral theory and extend
+the original theory as directed by the signatures and the non-LOCAL
+events.
+
+We export RATIONAL-TWO.
+
+
+Summary
+Form:  ( ENCAPSULATE NIL (LOCAL ...) ...)
+Rules: NIL
+Warnings:  Use, Subsume and Non-rec
+Time:  0.09 seconds (prove: 0.00, print: 0.00, other: 0.09)
+Prover steps counted:  33
+T
+
+
+ACL2(r) !>>>(MAKE-EVENT (R2A-RECORD-EXPORT 'ANALYTIC-LOCALS-ARE-ALLOWED
+                                           '((DEFUN RATIONAL-TWO NIL 2)
+                                             (DEFTHM RATIONAL-TWO-POSITIVE
+                                               (< 0 (RATIONAL-TWO))))
+                                           STATE))
+
+Summary
+Form:  ( TABLE R2A-EXPORTS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+Summary
+Form:  ( MAKE-EVENT (R2A-RECORD-EXPORT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+R2A-EXPORTS
+
+Summary
+Form:  ( PROGN (ENCAPSULATE NIL ...) ...)
+Rules: NIL
+Warnings:  Use, Subsume and Non-rec
+Time:  0.09 seconds (prove: 0.00, print: 0.00, other: 0.09)
+Prover steps counted:  33
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT ...))
+Rules: NIL
+Warnings:  Use, Subsume and Non-rec
+Time:  0.09 seconds (prove: 0.00, print: 0.00, other: 0.09)
+Prover steps counted:  33
+ R2A-EXPORTS
+ACL2(r) !>> :PASSED
+ACL2(r) !>>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>>>
+
+ACL2(r) !>>>>(ENCAPSULATE NIL
+               (LOCAL (DEFTHM FALSE-LOCAL NIL))
+               (DEFTHM RETAINED-TRUE (EQUAL 1 1)))
+
+To verify that the two encapsulated events correctly extend the current
+theory we will evaluate them.  The theory thus constructed is only
+ephemeral.
+
+Encapsulated Events:
+
+
+ACL2(r) !>>>>(LOCAL (DEFTHM FALSE-LOCAL NIL))
+
+
+ACL2 Error in ( DEFTHM FALSE-LOCAL ...):  A :REWRITE rule generated
+from FALSE-LOCAL is illegal because it rewrites the quoted constant
+'NIL.  For general information about rewrite rules in ACL2, see :DOC
+rewrite.
+
+
+Summary
+Form:  ( DEFTHM FALSE-LOCAL ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( DEFTHM FALSE-LOCAL ...):  See :DOC failure.
+
+******** FAILED ********
+
+ACL2 Warning in ( ENCAPSULATE NIL (LOCAL ...) ...):  The attempted
+ENCAPSULATE has failed while trying to establish the admissibility
+of one of the (local or non-local) forms in the body of the ENCAPSULATE.
+
+
+Summary
+Form:  ( ENCAPSULATE NIL (LOCAL ...) ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( ENCAPSULATE NIL (LOCAL ...) ...):  See :DOC
+failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( PROGN (ENCAPSULATE NIL ...) ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( PROGN (ENCAPSULATE NIL ...) ...):  See :DOC
+failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT
+...)):  See :DOC failure.
+
+******** FAILED ********
+ :ERROR
+ACL2(r) !>> :PASSED
+ACL2(r) !>>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>>>
+
+ACL2 Error in R2A-EXPORT-DEVELOPMENT:  Rejected retained definitions,
+witnesses, or theorem: 
+(:NONPORTABLE-DEFINITION (DEFUN MY-SQRT-2 NIL (ACL2-SQRT 2)))
+
+
+
+ACL2 Error in ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT ...)):  Error
+in MAKE-EVENT from expansion of:
+  (R2A-EXPORT-DEVELOPMENT-EVENT 'REJECT-MATT-WITNESS
+                                '((LOCAL (INCLUDE-BOOK "nonstd/nsa/sqrt"
+                                                       :DIR :SYSTEM))
+                                  (ENCAPSULATE (#)
+                                    (LOCAL #)
+                                    (DEFTHM BAD #)))
+                                STATE)
+(See :DOC set-iprint to be able to see elided values in this message.)
+
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT
+...)):  See :DOC failure.
+
+******** FAILED ********
+ :ERROR
+ACL2(r) !>> :PASSED
+ACL2(r) !>>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>>>
+
+ACL2 Error in R2A-EXPORT-DEVELOPMENT:  Rejected retained definitions,
+witnesses, or theorem: 
+(:UNSUPPORTED-EVENT (DEFCHOOSE CHOSEN-ROOT (X) NIL (EQUAL (* X X) 2)))
+
+
+
+ACL2 Error in ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT ...)):  Error
+in MAKE-EVENT from expansion of:
+  (R2A-EXPORT-DEVELOPMENT-EVENT 'REJECT-REAL-CHOICE
+                                '((LOCAL (INCLUDE-BOOK "nonstd/nsa/sqrt"
+                                                       :DIR :SYSTEM))
+                                  (DEFCHOOSE CHOSEN-ROOT (X)
+                                                         NIL
+                                    (EQUAL # 2))
+                                  (DEFTHM BAD (EQUAL # 2)))
+                                STATE)
+(See :DOC set-iprint to be able to see elided values in this message.)
+
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT
+...)):  See :DOC failure.
+
+******** FAILED ********
+ :ERROR
+ACL2(r) !>> :PASSED
+ACL2(r) !>>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>>>
+
+ACL2(r) !>>>>(ENCAPSULATE NIL
+               (LOCAL (SKIP-PROOFS (DEFTHM SKIPPED-TRUE
+                                     (EQUAL 1 1)
+                                     :RULE-CLASSES NIL)))
+               (DEFTHM RETAINED-TRUE
+                 (EQUAL 1 1)
+                 :RULE-CLASSES NIL))
+
+To verify that the two encapsulated events correctly extend the current
+theory we will evaluate them.  The theory thus constructed is only
+ephemeral.
+
+Encapsulated Events:
+
+
+ACL2(r) !>>>>(LOCAL (SKIP-PROOFS (DEFTHM SKIPPED-TRUE
+                                   (EQUAL 1 1)
+                                   :RULE-CLASSES NIL)))
+
+ACL2 Warning [Skip-proofs] in ( ENCAPSULATE NIL (LOCAL ...) ...): 
+ACL2 has encountered a SKIP-PROOFS form, 
+(SKIP-PROOFS (DEFTHM SKIPPED-TRUE (EQUAL 1 1) :RULE-CLASSES NIL)),
+in the context of a book or an encapsulate event.  Therefore, no logical
+claims may be soundly made in this context.  See :DOC SKIP-PROOFS.
+
+SKIPPED-TRUE
+
+
+ACL2(r) !>>>>(DEFTHM RETAINED-TRUE
+               (EQUAL 1 1)
+               :RULE-CLASSES NIL)
+
+Q.E.D.
+
+Summary
+Form:  ( DEFTHM RETAINED-TRUE ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+RETAINED-TRUE
+
+End of Encapsulated Events.
+
+Having verified that the encapsulated events validate the signatures
+of the ENCAPSULATE event, we discard the ephemeral theory and extend
+the original theory as directed by the signatures and the non-LOCAL
+events.
+
+
+Summary
+Form:  ( ENCAPSULATE NIL (LOCAL ...) ...)
+Rules: NIL
+Warnings:  Skip-proofs
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+T
+
+
+ACL2(r) !>>>>(MAKE-EVENT (R2A-RECORD-EXPORT 'REJECT-SKIPPED-LOCAL
+                                            '((DEFTHM RETAINED-TRUE
+                                                (EQUAL 1 1)
+                                                :RULE-CLASSES NIL))
+                                            STATE))
+
+
+ACL2 Error in R2A-EXPORT:  The completed source proof used trust tags,
+skipped proofs, redefinition, or added axioms.
+
+
+
+ACL2 Error in ( MAKE-EVENT (R2A-RECORD-EXPORT ...)):  Error in MAKE-
+EVENT from expansion of:
+  (R2A-RECORD-EXPORT 'REJECT-SKIPPED-LOCAL
+                     '((DEFTHM RETAINED-TRUE
+                         (EQUAL 1 1)
+                         :RULE-CLASSES NIL))
+                     STATE)
+
+
+
+Summary
+Form:  ( MAKE-EVENT (R2A-RECORD-EXPORT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-RECORD-EXPORT ...)):  See
+:DOC failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( PROGN (ENCAPSULATE NIL ...) ...)
+Rules: NIL
+Warnings:  Skip-proofs
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( PROGN (ENCAPSULATE NIL ...) ...):  See :DOC
+failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT ...))
+Rules: NIL
+Warnings:  Skip-proofs
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-EXPORT-DEVELOPMENT-EVENT
+...)):  See :DOC failure.
+
+******** FAILED ********
+ :ERROR
+ACL2(r) !>> :PASSED
+ACL2(r) !>> :DEVELOPMENT-SOURCE-TESTS-PASSED
+ACL2(r) !>>Bye.
+ :EOF
+ACL2(r) !>

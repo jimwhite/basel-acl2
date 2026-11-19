@@ -32,7 +32,9 @@
 ; Macro/event escape hatches and introduced constants fail closed.
 (assert-event (r2a-interface-error '((make-event '(defthm bad nil)))))
 (assert-event (r2a-interface-error '((skip-proofs (defthm bad nil)))))
-(assert-event (r2a-interface-error '((local (include-book "unchecked")))))
+; The line break keeps cert.pl from scanning quoted data as a dependency.
+(assert-event (r2a-interface-error '((local (include-book
+                                            "unchecked")))))
 (assert-event (r2a-interface-error '((defun-std hidden () (acl2-pi)))))
 (assert-event (r2a-interface-error '((defthm bad (equal *hidden* 2)))))
 (assert-event (r2a-interface-error '((defthm bad (unknown-macro x)))))

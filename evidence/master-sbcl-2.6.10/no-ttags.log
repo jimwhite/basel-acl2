@@ -1,0 +1,57 @@
+This is SBCL 2.6.10, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7+ (a development snapshot based on ACL2 Version 8.7) +
+ +   built November 19, 2026  17:57:37.                                 +
+ +   (Note from the environment when this executable was saved:         +
+ +    Git commit hash: 043ce2f2e51aa3dd7fde519be0b1091d7bc4077a)        +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2 !>
+
+ACL2 !>>(INCLUDE-BOOK "transfer"
+                      :TTAGS NIL
+                      :UNCERTIFIED-OKP NIL)
+
+Summary
+Form:  ( INCLUDE-BOOK "transfer" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+"/workspaces/basel-acl2/build/acl2/transfer.lisp"
+
+
+ACL2 !>>(INCLUDE-BOOK "rational-proofs"
+                      :TTAGS NIL
+                      :UNCERTIFIED-OKP NIL)
+
+Summary
+Form:  ( INCLUDE-BOOK "rational-proofs" ...)
+Rules: NIL
+Time:  0.05 seconds (prove: 0.00, print: 0.00, other: 0.05)
+"/workspaces/basel-acl2/build/acl2/rational-proofs.lisp"
+
+
+ACL2 !>>(VALUE-TRIPLE :NO-TTAGS-CHECK-PASSED)
+:NO-TTAGS-CHECK-PASSED
+
+Summary
+Form:  ( PROGN (INCLUDE-BOOK "transfer" ...) ...)
+Rules: NIL
+Time:  0.05 seconds (prove: 0.00, print: 0.00, other: 0.05)
+ :NO-TTAGS-CHECK-PASSED
+ACL2 !>

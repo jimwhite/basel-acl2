@@ -1,0 +1,276 @@
+This is SBCL 2.6.10, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7(r)+ (a development snapshot based on ACL2 Version 8.7(r)) +
+ +   built November 19, 2026  18:03:58.                                 +
+ +   (Note from the environment when this executable was saved:         +
+ +    Git commit hash: 043ce2f2e51aa3dd7fde519be0b1091d7bc4077a)        +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>> "ACL2"
+ACL2(r) !>>
+Summary
+Form:  ( INCLUDE-BOOK "transfer" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspaces/basel-acl2/build/acl2r/transfer.lisp"
+ACL2(r) !>>
+
+ACL2(r) !>>>(ENCAPSULATE NIL
+              (DEFUN RATIONAL-DOUBLE (X)
+                (* 2 (IFIX X)))
+              (DEFTHM DOUBLE-IS-RATIONAL
+                (RATIONALP (RATIONAL-DOUBLE X)))
+              (ENCAPSULATE ((PORTABLE-HALF (X) T))
+                (LOCAL (DEFUN PORTABLE-HALF (X)
+                         (/ (IFIX X) 2)))
+                (LOCAL (DEFUN PORTABLE-HELPER (X)
+                         (PORTABLE-HALF X)))
+                (LOCAL (DEFTHM HELPER-RATIONAL
+                         (RATIONALP (PORTABLE-HELPER X))))
+                (DEFTHM HALF-RATIONAL
+                  (RATIONALP (PORTABLE-HALF X)))))
+
+To verify that the three encapsulated events correctly extend the current
+theory we will evaluate them.  The theory thus constructed is only
+ephemeral.
+
+Encapsulated Events:
+
+
+ACL2(r) !>>>(DEFUN RATIONAL-DOUBLE (X)
+              (* 2 (IFIX X)))
+
+Since RATIONAL-DOUBLE is non-recursive, its admission is trivial. 
+We observe that the type of RATIONAL-DOUBLE is described by the theorem
+(OR (AND (INTEGERP (RATIONAL-DOUBLE X))
+         (<= (RATIONAL-DOUBLE X) 0))
+    (AND (INTEGERP (RATIONAL-DOUBLE X))
+         (< 1 (RATIONAL-DOUBLE X)))).
+We used primitive type reasoning and the :type-prescription rule IFIX.
+
+Summary
+Form:  ( DEFUN RATIONAL-DOUBLE ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION IFIX))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+RATIONAL-DOUBLE
+
+
+ACL2(r) !>>>(DEFTHM DOUBLE-IS-RATIONAL
+              (RATIONALP (RATIONAL-DOUBLE X)))
+
+ACL2 Warning [Non-rec] in ( DEFTHM DOUBLE-IS-RATIONAL ...):  A :REWRITE
+rule generated from DOUBLE-IS-RATIONAL will be triggered only by terms
+containing the function symbol RATIONAL-DOUBLE, which has a non-recursive
+definition.  Unless this definition is disabled, this rule is unlikely
+ever to be used.
+
+
+Q.E.D.
+
+The storage of DOUBLE-IS-RATIONAL depends upon the :type-prescription
+rule RATIONAL-DOUBLE.
+
+Summary
+Form:  ( DEFTHM DOUBLE-IS-RATIONAL ...)
+Rules: ((:TYPE-PRESCRIPTION RATIONAL-DOUBLE))
+Warnings:  Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+DOUBLE-IS-RATIONAL
+
+
+ACL2(r) !>>>(ENCAPSULATE ((PORTABLE-HALF (X) T))
+              (LOCAL (DEFUN PORTABLE-HALF (X)
+                       (/ (IFIX X) 2)))
+              (LOCAL (DEFUN PORTABLE-HELPER (X)
+                       (PORTABLE-HALF X)))
+              (LOCAL (DEFTHM HELPER-RATIONAL
+                       (RATIONALP (PORTABLE-HELPER X))))
+              (DEFTHM HALF-RATIONAL
+                (RATIONALP (PORTABLE-HALF X))))
+
+To verify that the four encapsulated events correctly extend the current
+theory we will evaluate them.  The theory thus constructed is only
+ephemeral.
+
+Encapsulated Events:
+
+
+ACL2(r) !>>>(LOCAL (DEFUN PORTABLE-HALF (X)
+                     (/ (IFIX X) 2)))
+
+Since PORTABLE-HALF is non-recursive, its admission is trivial.  We
+observe that the type of PORTABLE-HALF is described by the theorem
+(RATIONALP (PORTABLE-HALF X)).  We used primitive type reasoning and
+the :type-prescription rule IFIX.
+
+Summary
+Form:  ( DEFUN PORTABLE-HALF ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION IFIX))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+PORTABLE-HALF
+
+
+ACL2(r) !>>>(LOCAL (DEFUN PORTABLE-HELPER (X)
+                     (PORTABLE-HALF X)))
+
+Since PORTABLE-HELPER is non-recursive, its admission is trivial. 
+We observe that the type of PORTABLE-HELPER is described by the theorem
+(RATIONALP (PORTABLE-HELPER X)).  We used the :type-prescription rule
+PORTABLE-HALF.
+
+Summary
+Form:  ( DEFUN PORTABLE-HELPER ...)
+Rules: ((:TYPE-PRESCRIPTION PORTABLE-HALF))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+PORTABLE-HELPER
+
+
+ACL2(r) !>>>(LOCAL (DEFTHM HELPER-RATIONAL
+                     (RATIONALP (PORTABLE-HELPER X))))
+
+ACL2 Warning [Non-rec] in ( DEFTHM HELPER-RATIONAL ...):  A :REWRITE
+rule generated from HELPER-RATIONAL will be triggered only by terms
+containing the function symbol PORTABLE-HELPER, which has a non-recursive
+definition.  Unless this definition is disabled, this rule is unlikely
+ever to be used.
+
+
+Q.E.D.
+
+The storage of HELPER-RATIONAL depends upon the :type-prescription
+rule PORTABLE-HELPER.
+
+Summary
+Form:  ( DEFTHM HELPER-RATIONAL ...)
+Rules: ((:TYPE-PRESCRIPTION PORTABLE-HELPER))
+Warnings:  Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+HELPER-RATIONAL
+
+
+ACL2(r) !>>>(DEFTHM HALF-RATIONAL
+              (RATIONALP (PORTABLE-HALF X)))
+
+ACL2 Warning [Non-rec] in ( DEFTHM HALF-RATIONAL ...):  A :REWRITE
+rule generated from HALF-RATIONAL will be triggered only by terms containing
+the function symbol PORTABLE-HALF, which has a non-recursive definition.
+Unless this definition is disabled, this rule is unlikely ever to be
+used.
+
+
+Q.E.D.
+
+The storage of HALF-RATIONAL depends upon the :type-prescription rule
+PORTABLE-HALF.
+
+Summary
+Form:  ( DEFTHM HALF-RATIONAL ...)
+Rules: ((:TYPE-PRESCRIPTION PORTABLE-HALF))
+Warnings:  Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+HALF-RATIONAL
+
+End of Encapsulated Events.
+
+Having verified that the encapsulated events validate the signatures
+of the ENCAPSULATE event, we discard the ephemeral theory and extend
+the original theory as directed by the signatures and the non-LOCAL
+events.
+
+The following constraint is associated with the function PORTABLE-HALF:
+
+(RATIONALP (PORTABLE-HALF X))
+
+Summary
+Form:  ( ENCAPSULATE ((PORTABLE-HALF ...) ...) ...)
+Rules: NIL
+Warnings:  Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+PORTABLE-HALF
+
+End of Encapsulated Events.
+
+Having verified that the encapsulated events validate the signatures
+of the ENCAPSULATE event, we discard the ephemeral theory and extend
+the original theory as directed by the signatures and the non-LOCAL
+events.
+
+We export PORTABLE-HALF and RATIONAL-DOUBLE.
+
+
+Summary
+Form:  ( ENCAPSULATE NIL (DEFUN RATIONAL-DOUBLE ...) ...)
+Rules: NIL
+Warnings:  Non-rec
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+T
+
+
+ACL2(r) !>>>(MAKE-EVENT (R2A-RECORD-EXPORT
+                             'EXAMPLE
+                             '((DEFUN RATIONAL-DOUBLE (X)
+                                 (* 2 (IFIX X)))
+                               (DEFTHM DOUBLE-IS-RATIONAL
+                                 (RATIONALP (RATIONAL-DOUBLE X)))
+                               (ENCAPSULATE ((PORTABLE-HALF (X) T))
+                                 (LOCAL (DEFUN PORTABLE-HALF (X)
+                                          (/ (IFIX X) 2)))
+                                 (LOCAL (DEFUN PORTABLE-HELPER (X)
+                                          (PORTABLE-HALF X)))
+                                 (LOCAL (DEFTHM HELPER-RATIONAL
+                                          (RATIONALP (PORTABLE-HELPER X))))
+                                 (DEFTHM HALF-RATIONAL
+                                   (RATIONALP (PORTABLE-HALF X)))))
+                             STATE))
+
+Summary
+Form:  ( TABLE R2A-EXPORTS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+Summary
+Form:  ( MAKE-EVENT (R2A-RECORD-EXPORT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+R2A-EXPORTS
+
+Summary
+Form:  ( PROGN (ENCAPSULATE NIL ...) ...)
+Rules: NIL
+Warnings:  Non-rec
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-EVENT ...))
+Rules: NIL
+Warnings:  Non-rec
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ R2A-EXPORTS
+ACL2(r) !>> :R2A-EXPORTED
+ACL2(r) !>>Bye.
+ :EOF
+ACL2(r) !>
