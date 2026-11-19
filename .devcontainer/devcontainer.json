@@ -1,0 +1,20 @@
+{
+  "name": "Basel: ACL2 + ACL2(r) (SBCL 2.6.10, ACL2 master)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "SBCL_VERSION": "2.6.10",
+      "ACL2_REF": "master",
+      "NONSTD_REF": "330a2344fa44d08fbd5fbf24c4b44a7473c9803d"
+    }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb", "storage": "32gb" },
+  "remoteUser": "vscode",
+  "postCreateCommand": "echo \"ACL2 commit: $(cat /opt/acl2/ACL2_COMMIT); ACL2(r) books/nonstd: $(cat /opt/acl2r/NONSTD_COMMIT)\"; sbcl --version",
+  "customizations": {
+    "vscode": {
+      "extensions": ["mattn.lisp"]
+    }
+  }
+}

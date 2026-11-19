@@ -3,7 +3,8 @@
 ## Revalidation: SBCL 2.6.10 and ACL2 master
 
 Both procedures in [README.md](README.md) were rerun from scratch in the
-dev containers in `.devcontainer/`, using `scripts/acl2r-reproduce.sh` and
+dev container in `.devcontainer/` (separate `/opt/acl2` and `/opt/acl2r`
+installations), using `scripts/acl2r-reproduce.sh` and
 `scripts/acl2-certify.sh`:
 
 - SBCL 2.6.10, built from the `sbcl-2.6.10` source tag.
@@ -31,6 +32,11 @@ Results:
   (`demo` 63 and `basel-interval` 1,478 prover steps). `transfer` and
   `rational-proofs` were included with `:ttags nil`. The width of
   `bq-basel-interval` at N=10^20 equals the value given below.
+- In the same container, ordinary ACL2 also imported the regenerated
+  `build/acl2r/new-basel.r2a` and certified every client book. Each script
+  refused to run with the other flavor's executable, and ordinary ACL2's
+  `include-book` rejected an ACL2(r)-certified `transfer` ("We do not permit
+  ACL2 books to be processed by ACL2(r) or vice versa").
 
 Corrections found by this run, now reflected in README.md:
 
