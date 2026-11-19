@@ -92,7 +92,8 @@ alone cannot make the interval arbitrarily narrow. The results are finite
 bounds and a rational Cauchy estimate, not an ordinary-ACL2 representation
 of pi or a proof using arbitrary-precision pi bounds.
 
-For the mathematical derivation, see [Adapt ACL2r Proof.md](Adapt%20ACL2r%20Proof.md).
+For the mathematical derivation, see the original ChatGPT Astra session (https://chatgpt.com/share/6aff647f-fccc-83e8-8ff6-1907b1c49545) or this .md version [Adapt%20ACL2r%20Proof.md](Adapt%20ACL2r%20Proof.md).
+
 For details on accepted transfer events, trust assumptions, and limitations,
 see [TRANSFER.md](TRANSFER.md). The latest validation setup and recorded
 results are in [VALIDATION.md](VALIDATION.md).
