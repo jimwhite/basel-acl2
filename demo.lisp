@@ -1,7 +1,7 @@
 ; Demonstrate an enormous finite sum without evaluating its summands.
 ; SPDX-License-Identifier: MIT
 (in-package "ACL2")
-(include-book "basel-rational" :ttags (:basel-acl2r-finite-bounds))
+(include-book "basel-rational" :ttags (:acl2r-checked-transfer))
 
 (defthm bq-demo-2-to-80-terms
   (and (<= 1644934066848226436/1000000000000000000

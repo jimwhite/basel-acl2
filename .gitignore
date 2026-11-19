@@ -1,0 +1,8 @@
+*.cert
+*.cert.out
+*.fasl
+*.port
+*.o
+*.acl2x
+*@expansion.lsp
+basel-source.lisp

@@ -1,55 +1,79 @@
-# Validation record
+# Validation of the ACL2-native transfer
 
-Date: 2026-11-17 (America/Los_Angeles).
-
-Runtime: SBCL 2.5.2.debian on Linux. Ordinary ACL2 and ACL2(r) were built
-separately from ACL2 commit
-`330a2344fa44d08fbd5fbf24c4b44a7473c9803d` (`acl2r-context`).
+Validated with ACL2 8.7 and ACL2 8.7(r), both built on SBCL 2.5.2.
+The source checkout was commit
+`330a2344fa44d08fbd5fbf24c4b44a7473c9803d`.
+Source and target used separate certificate directories.
 
 ## Ordinary ACL2
 
-The following books certified successfully:
+These books certified successfully:
 
-- `rational-defs.lisp`
-- `rational-proofs.lisp`
-- `trusted-bridge.lisp`, with exactly `:basel-acl2r-finite-bounds` permitted
-- `basel-rational.lisp`, with the same tag
-- `demo.lisp`, with the same tag
+- `transfer.lisp` and `transfer-tests.lisp`, without trust tags.
+- `rational-defs.lisp` and `rational-proofs.lisp`, without trust tags.
+- `trusted-bridge.lisp`, `basel-rational.lisp`, and `demo.lisp`, allowing
+  only `:acl2r-checked-transfer`.
+- `example-import.lisp`, allowing only that tag. This exercises a nonempty
+  encapsulate, a rational local witness, a local helper and theorem, and an
+  ordinary ACL2 consequence of the exported constraint.
 
-The proof of the demonstration with 2^80 summands counted 63 prover steps.
-It instantiates the proved bound and evaluates only the rational endpoints;
-it does not enumerate the sum.
-
-The ordinary rational proof book has no trust tag. Certification of the
-bridge and the books depending on it is explicitly relative to the named
-trust obligation; ordinary ACL2 does not verify the ACL2(r) certificate.
+The final large-index example again used 63 prover steps. No enormous
+partial sum was evaluated.
 
 ## ACL2(r)
 
-The generated `acl2r-export.lisp` certified successfully with no trust tags.
-Its final theorem is exactly `(bq-fixed-odd-enclosure n)`.
+These books certified successfully without trust tags:
 
-The whole finite exporter replay took 61.87 seconds and 687,674 prover steps.
-The newly added export theorem itself took 0.29 seconds and 19,715 prover
-steps. It used `big-lower-bound-lemma-specialized-3`,
-`big-upper-bound-lemma-specialized-6`, and `pi-tight-bound`.
+- `transfer.lisp`
+- `transfer-tests.lisp`
+- `prepare-basel.lisp`
+- the ACL2-generated `basel-source.lisp`
 
-This validates the reduced dependency chain: the original integral-based
-`basel-bound` book and the final nonstandard limit argument are not needed
-to prove the exported finite theorem.
+The generated source book took approximately 74 seconds and 688,176 prover
+steps in the final run. It includes the original finite analytic argument
+and proves `bq-fixed-odd-enclosure-export`. The receipt was written after
+successful source certification and inclusion.
 
-## Additional checks
+The small example also completed its source proofs and exported its receipt.
+The receipts from the final source run were byte-for-byte identical to those
+used for ordinary ACL2 certification.
 
-- Trusted processor's negative recognition assertions passed as part of
-  `trusted-bridge.lisp` certification.
-- The preparation script rejected a modified upstream Basel source.
-- The preparation script refused to overwrite a nonempty output directory.
-- The shared rational definitions in both workspaces were byte-for-byte
-  identical.
+## Rejection tests
 
-## Reproduction and evidence
+`transfer-tests.lisp` certified in both systems. It covers:
 
-See `README.md` for exact commands and source references. Final successful
-certification logs are included under `evidence/`. Certificate files and
-compiled Lisp are intentionally not distributed: recertify with your own
-matching ACL2 build and dependency tree.
+- Matt's local square-root witness, with both `sqrt` and `acl2-sqrt`.
+- A nested local encapsulate containing that witness.
+- A nonportable local theorem.
+- Unsupported macros, named constants, event generation, skipped proofs,
+  includes, and nonstandard definitions.
+- A signature without a direct local witness.
+- Local-name leakage after an encapsulate.
+- The invalid transfer of a later theorem about an already abstract function.
+
+`export-failure-tests.lsp` was run in ACL2(r). Its three expected failures
+were followed by successful assertions that no export was recorded:
+the rejected irrational witness, a false source theorem, and a source event
+that succeeds in the first pass but fails local-compatibility checking in
+the second. The log ends with
+`:ALL-EXPECTED-EXPORT-FAILURES-CHECKED`.
+
+## Evidence and interpretation
+
+- `evidence/native-acl2-summary.log`: ordinary certification summaries.
+- `evidence/native-acl2r-summary.log`: source certification and export summaries.
+- `evidence/native-export-failures.log`: full expected-failure regression log.
+
+The summary files are excerpts, not proof certificates. Existing older
+`*.cert.out` files and `source-manifest.json` in `evidence/` describe the
+previous hard-coded bridge and Python adapter; they are historical evidence.
+
+This validation establishes successful admission and the tested rejection
+behavior. It does not verify the transfer algorithm's soundness or
+authenticate receipt provenance. Those remain explicit trust obligations;
+see [TRANSFER.md](TRANSFER.md). The source syntax and abstraction restrictions
+are intentional, and the mathematical result remains fixed precision.
+
+Build products (`.cert`, `.fasl`, `.port`) are not committed. Rebuild them
+with the matching ACL2 executable. The import books include `depends-on`
+comments so `cert.pl` tracks receipt changes.

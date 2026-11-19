@@ -1,4 +1,4 @@
-; Appended to the original basel-series.lisp by prepare-acl2r.py.
+; Added to the finite source prefix by prepare-basel.lisp.
 ; At this point its LOCAL finite lemmas remain available to certification.
 ; There is no trust tag here: this theorem must be PROVED in ACL2(r).
 

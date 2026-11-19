@@ -3,7 +3,7 @@
 (in-package "ACL2")
 (include-book "rational-proofs")
 (local (include-book "arithmetic-5/top" :dir :system))
-(include-book "trusted-bridge" :ttags (:basel-acl2r-finite-bounds))
+(include-book "trusted-bridge" :ttags (:acl2r-checked-transfer))
 
 (defthm bq-fixed-dyadic-enclosure
   (implies (posp n)

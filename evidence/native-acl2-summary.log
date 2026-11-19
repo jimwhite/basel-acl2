@@ -1,0 +1,107 @@
+Summary
+Form:  (CERTIFY-BOOK "transfer" ...)
+Rules: NIL
+Time:  0.36 seconds (prove: 0.00, print: 0.00, other: 0.36)
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/transfer.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/transfer-tests.port.
+
+Summary
+Form:  (CERTIFY-BOOK "transfer-tests" ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/transfer-tests.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/rational-defs.port.
+
+Summary
+Form:  (CERTIFY-BOOK "rational-defs" ...)
+Rules: NIL
+Warnings:  Guards
+Time:  0.08 seconds (prove: 0.00, print: 0.00, other: 0.08)
+Prover steps counted:  478
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/rational-defs.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/rational-proofs.port.
+
+Summary
+Form:  (CERTIFY-BOOK "rational-proofs" ...)
+Rules: NIL
+Warnings:  Guards, Subsume and Non-rec
+Time:  2.14 seconds (prove: 0.81, print: 0.01, other: 1.33)
+Prover steps counted:  42089
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/rational-proofs.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/trusted-bridge.port.
+
+Summary
+Form:  (CERTIFY-BOOK "trusted-bridge" ...)
+Rules: NIL
+Warnings:  Guards
+Time:  0.09 seconds (prove: 0.01, print: 0.00, other: 0.08)
+Prover steps counted:  397
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/trusted-bridge.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/basel-rational.port.
+
+Summary
+Form:  (CERTIFY-BOOK "basel-rational" ...)
+Rules: NIL
+Warnings:  Guards, Disable, Theory and Non-rec
+Time:  3.61 seconds (prove: 0.37, print: 0.01, other: 3.23)
+Prover steps counted:  1904
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/basel-rational.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/demo.port.
+
+Summary
+Form:  ( DEFTHM BQ-DEMO-2-TO-80-TERMS ...)
+Rules: ((:DEFINITION BQ-PI-HI)
+        (:DEFINITION BQ-PI-LO)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EXPT)
+        (:EXECUTABLE-COUNTERPART POSP)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART UNARY-/)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL))
+Hint-events: ((:USE BQ-FIXED-BASEL-BOUNDS))
+Warnings:  Disable and Theory
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  63
+BQ-DEMO-2-TO-80-TERMS
+
+Summary
+Form:  (CERTIFY-BOOK "demo" ...)
+Rules: NIL
+Warnings:  Guards, Disable and Theory
+Time:  0.43 seconds (prove: 0.00, print: 0.00, other: 0.42)
+Prover steps counted:  63
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/demo.lisp"
+ACL2 !>           0:x(EXIT-BOOT-STRAP-MODE)
+ACL2 !>
+Note: Writing .port file, /workspace/scratch/fbe6ac8cde8b/basel-acl2-
+native/example-import.port.
+
+Summary
+Form:  (CERTIFY-BOOK "example-import" ...)
+Rules: NIL
+Warnings:  Guards
+Time:  0.28 seconds (prove: 0.11, print: 0.00, other: 0.17)
+ "/workspace/scratch/fbe6ac8cde8b/basel-acl2-native/example-import.lisp"
+ACL2 !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+* 
+
