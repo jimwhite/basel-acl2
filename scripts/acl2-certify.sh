@@ -14,7 +14,15 @@
 set -euo pipefail
 
 repo=$(cd "$(dirname "$0")/.." && pwd)
-receipt=$(realpath "${1:-$repo/basel.r2a}")
+receipt_path=${1:-$repo/basel.r2a}
+if [ ! -f "$receipt_path" ]; then
+  echo "Receipt not found: $receipt_path" >&2
+  if [ "$#" -gt 0 ]; then
+    echo "Run scripts/acl2r-reproduce.sh first to generate a receipt, or omit the argument to use basel.r2a." >&2
+  fi
+  exit 2
+fi
+receipt=$(realpath "$receipt_path")
 ACL2_ROOT=${ACL2_ROOT:-/opt/acl2}
 ACL2=${ACL2:-$ACL2_ROOT/saved_acl2}
 build=${BUILD_DIR:-$repo/build/acl2}

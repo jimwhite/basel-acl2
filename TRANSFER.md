@@ -1,168 +1,121 @@
-# Transfer contract and soundness boundary
+# ACL2(r)-to-ACL2 transfer: contract and trust boundary
 
-This implements a restricted interpretation of Matt Kaufmann's suggestion:
-use an explicit trust tag to transfer ACL2(r)-proved rational results, while
-checking the admissibility of the transferred interface, including LOCAL
-events inside ENCAPSULATE. It is not a claim to reproduce an unpublished
-general book-import design, nor a verified conservativity theorem.
+This project uses ACL2(r) to prove a rational finite-sum bound, then imports
+that result into ordinary ACL2 so the remaining arithmetic proofs can run
+there. The transfer is deliberately limited to a checked event interface.
+It is not a general ACL2(r) book importer, a verified transfer theorem, or a
+proof that arbitrary ACL2(r) results are valid in ordinary ACL2.
 
-## Two distinct event streams
+## How to run the workflow
 
-The analytic proof world may contain pi, square roots, nonstandard analysis,
-and its own encapsulates. It is never loaded into ordinary ACL2.
+For the standard workflow, use the commands in [README.md](README.md):
 
-The **portable interface** is the retained event sequence computed by
-`r2a-export-development`. A LOCAL event outside a nontrivial encapsulate is
-omitted from that interface, including inside trivial encapsulates. Inside a
-nontrivial encapsulate, the complete event subtree is retained and checked,
-including all local witnesses and nested scopes. Proof hints may refer to
-the analytic world, but hints are discarded when exporting. The bodies of
-retained definitions and formulas of retained theorems cannot refer to
-unchecked analytic functions. The older `r2a-export` entry point remains
-available for an explicitly supplied interface with no projection.
+```sh
+scripts/acl2r-reproduce.sh
+scripts/acl2-certify.sh build/acl2r/new-basel.r2a
+```
 
-Thus the checker is not claiming that every local event in Ruben's analytic
-proof is portable. It checks every local event of the interface actually
-transferred. Rejecting all analytic proof steps would defeat the purpose of
-using ACL2(r) as the source prover.
+The first script checks the ACL2(r) source proof and regenerates
+`build/acl2r/new-basel.r2a`. The second imports that receipt and certifies the
+ordinary ACL2 client. To use the distributed receipt without rerunning the
+source proof, run `scripts/acl2-certify.sh`.
 
-## Supported interface
+The source-side API is `r2a-export-development` followed, after successful
+book certification and inclusion, by a separate top-level call to
+`r2a-write-export`. In ordinary ACL2, include `transfer` and call
+`r2a-import` on the generated receipt. The small example in
+`example-export.lsp` and `example-import.lisp` illustrates that API.
 
-- `defun` with an ordinary body, optionally one `(declare (xargs :measure ...))`.
-  The target proves termination normally; termination is not trusted.
-- `defthm`, optionally with source `:hints` and `:rule-classes`.
-  The target exports the theorem with `:rule-classes nil`.
+## What is checked and transferred
+
+There are two event streams:
+
+- The **source proof** runs normally in ACL2(r). It may use analytic
+  definitions, nonstandard analysis, and local proof helpers.
+- The **portable interface** is the event sequence retained by
+  `r2a-export-development`. Its definitions and theorem statements are
+  checked against the supported ordinary-ACL2 vocabulary before transfer.
+
+Local events outside nontrivial encapsulates are omitted from the interface,
+including locals inside trivial encapsulates. The source proof still has to
+admit and prove the original events normally. Inside a nontrivial
+encapsulate, the full event subtree is retained and checked, including local
+witnesses and nested scopes. Proof hints are discarded during export.
+
+This distinction allows analytic helpers to support the source proof without
+being introduced into ordinary ACL2. It does not allow an unchecked helper
+to appear in a retained definition, theorem formula, or encapsulate witness.
+After a nonempty encapsulate, constrained functions and definitions from its
+scope are not added to the vocabulary for subsequent exports. This avoids
+treating an abstract function's ACL2(r) existence assumptions as ordinary
+ACL2 facts.
+
+The supported interface is intentionally small:
+
+- `defun` with an ordinary body, optionally with one
+  `(declare (xargs :measure ...))`. The receiving ACL2 proves termination.
+- `defthm`, optionally with source `:hints` and `:rule-classes`. The imported
+  theorem receives `:rule-classes nil`.
 - `local` and nested `encapsulate`.
-- Nonempty signatures in the form `((f (x ...) t) ...)`. Each signature
-  function must have a direct `(local (defun f ...))` witness in that scope.
+- Nonempty encapsulate signatures of the form `((f (x ...) t) ...)`, with a
+  direct local `defun` witness for each signature function.
 
-The term checker allows a small explicit vocabulary of shared arithmetic,
-list operations, predicates, and basic macros, plus earlier portable
-definitions. It handles QUOTE, LET and LET* explicitly. Literal data must
-belong to the ordinary ACL2 universe. Named constants and arbitrary macros
-are rejected. Function and event forms not explicitly supported are rejected.
-
-In particular, the interface does not accept `include-book`, `make-event`,
+The term checker allows a limited, explicit set of arithmetic and list
+operations, predicates, basic macros, and earlier portable definitions. It
+handles `QUOTE`, `LET`, and `LET*` explicitly. Unsupported forms, arbitrary
+macros, named constants, and non-ordinary-ACL2 data are rejected. In
+particular, the interface does not allow `include-book`, `make-event`,
 `defmacro`, `defconst`, `defchoose`, `defun-sk`, `defun-std`, `defaxiom`,
-`skip-proofs`, or raw Lisp. A surrounding source proof book may use normal
-ACL2(r) facilities to prove the interface statements.
+`skip-proofs`, or raw Lisp.
 
-This implements the Basel case, with a conservative supported fragment;
-it is not a claim that Matt's tentative criterion is sufficient in general.
-The test is stricter than ACL2(r)'s technical `classicalp` property: being
-classical does not imply that a function returns rational results on rational
-inputs. Square root is the relevant example.
+The older `r2a-export` entry point accepts an explicitly supplied interface
+without projection. It has the same restricted checking boundary.
 
-## Matt's counterexample
+## Trusted events and receipt handling
 
-This interface is rejected at its local definition:
+For each imported theorem, the importer creates a local trusted clause
+processor accepting only the clause derived for that theorem, with explicit
+supporters and tag `:acl2r-checked-transfer`. Definitions are admitted
+normally. The auxiliary predicates, processors, and supporting facts are
+local, so they cannot outlive the local definitions on which they rely.
 
-```lisp
-(encapsulate ((my-sqrt-2 () t))
-  (local (defun my-sqrt-2 () (sqrt 2)))
-  (defthm bad
-    (equal (* (my-sqrt-2) (my-sqrt-2)) 2)))
-```
+The receipt is data produced by an ACL2(r) run; ordinary ACL2 does not verify
+it as a proof certificate. It is not cryptographically authenticated.
+Do not edit receipts or populate the export table manually. The source
+checker, event generator, receipt-writing path, source proof, correspondence
+of definitions across the two systems, and receipt provenance are all part
+of the trust obligation.
 
-The checker also rejects `acl2-sqrt`, aliases introduced through nonportable
-definitions, nested local encapsulates, and nonportable local theorems.
-It does not infer safety merely from the exported equation's operators.
+The source checks require the original events to succeed with proofs enabled.
+After both the interface check and the original source events succeed, a
+fresh trust-state check rejects trust tags, skipped proofs, redefinitions,
+and added axioms. The export is recorded only after these checks; writing it
+is a separate command after certification.
 
-## A second restriction: abstraction changes the argument
+## Why the restrictions matter
 
-Even a rational witness does not justify transferring every later theorem
-about the resulting abstract function. For example:
+An ACL2(r) theorem can depend on irrational witnesses even when its
+conclusion looks rational. For example, a local witness that defines a
+function as `(sqrt 2)` cannot safely be treated as an ordinary ACL2
+definition. The checker rejects this case and aliases through
+nonportable definitions; it does not infer safety from the theorem's
+operators alone.
 
-```lisp
-(encapsulate ((c () t))
-  (local (defun c () 0))
-  (defthm condition-on-c
-    (implies (equal (* x x) 2) (equal (c) 0))))
-```
+Abstract functions are another hazard. In ACL2(r), an encapsulate
+constraint may be justified by an irrational witness; ordinary ACL2 may not
+be able to satisfy the same constraint. Retaining and checking the local
+witnesses is therefore essential, and the post-encapsulate vocabulary
+restriction prevents later transfers from relying on an unsound
+interpretation of the abstraction.
 
-In ACL2(r), the constraint implies `(equal (c) 0)` by instantiating x with a
-square root of 2. In ordinary ACL2 the constraint is vacuous. Transferring
-that subsequent theorem as if it followed from the same constraints would
-therefore need an additional justification.
+The checker is ACL2 `:program` code. This project tests the accepted and
+rejected cases, but does not prove the checker's soundness or prove a general
+conservativity result. Extending the syntax or changing the abstract-function
+policy requires a new soundness review and regression tests.
 
-This implementation fails closed: after a nonempty encapsulate, its
-constrained functions and the definitions introduced in its scope are not
-added to the vocabulary for subsequent transfers. The constraint events
-themselves are checked while their explicit portable witnesses are in scope.
-Ordinary ACL2 may subsequently reason about the imported constraints, as
-`example-import.lisp` demonstrates. A new export starts with an empty
-user-function vocabulary; it cannot bypass this restriction by naming an
-abstract function already in the source world.
-
-## Source proof and target proof
-
-`r2a-export-development` checks the projected interface before executing the
-original source events. Those source events, including omitted local proof
-steps, must succeed normally inside an encapsulate. It records the interface
-only after both passes succeed and a fresh trust-state check succeeds. A
-false local theorem, local-incompatibility failure, or skipped local proof
-cannot produce a new export. Source checks reject skipped proofs, trust tags,
-redefinitions, and nonconstructive axioms added after the ACL2(r) bootstrap.
-
-File output is a separate top-level `r2a-write-export` command after source
-certification. No trust tag is used to write files inside MAKE-EVENT.
-The receipt keeps the retained definitions, constraints, and local events
-inside nontrivial encapsulates. Source proof hints and rule-class settings
-are stripped; discarded analytic helpers never enter the receipt.
-
-The target checks the receipt again. It admits definitions normally and
-builds a local predicate for each theorem. A local trusted clause processor
-accepts exactly the singleton clause calling that predicate with its free
-variables. All other clauses are unchanged. The predicate and visible
-interface functions are explicit supporters. An ordinary ACL2 proof then
-recovers the original theorem from that local fact.
-
-Auxiliary processors and facts are local, so they cannot outlive the local
-definitions on which their correctness depends. The tag survives in the
-book's trust-tag accounting.
-
-## What the trust tag means
-
-`:acl2r-checked-transfer` authorizes reliance on:
-
-1. The soundness of the source ACL2(r) proof run.
-2. The correspondence of the checked portable vocabulary and definitions
-   between ACL2(r) and ordinary ACL2.
-3. Correctness of this executable checker and event generator.
-4. The receipt genuinely coming from that run without alteration.
-
-The checker is ACL2 `:program` code, not a verified clause processor or a
-machine-proved transfer metatheorem. The receipt is not cryptographically
-authenticated and is not an ACL2 proof certificate. A fabricated receipt
-could claim a false theorem over otherwise portable functions. Neither its
-format nor the source-version string establishes proof provenance. The
-export table and low-level writing utilities are likewise part of the trusted
-workflow; do not populate them manually.
-
-Ordinary certification with this tag verifies the receiving definitions and
-all subsequent rational proofs, conditional on those trust obligations.
-The tag and explicit checks reduce and expose the trusted work; they do not
-eliminate it. Extending the accepted syntax or abstract-function policy needs
-a fresh soundness review and tests.
-
-## Concrete Basel development
-
-The generated `basel-analytic` book proves `bq-analytic-odd-enclosure` from
-Ruben's finite analytic bounds and the existing rational bounds on pi. The
-generated `basel-source` book supplies the shared rational definitions,
-locally includes that analytic book, and proves
-`bq-fixed-odd-enclosure-export` by that analytic theorem, all inside
-`r2a-export-development`.
-
-Projection removes the local analytic include. The retained interface has
-only concrete rational definitions and a rational theorem: no nontrivial
-encapsulate, no choice function, no real-valued function. The regenerated
-receipt is byte-for-byte identical to the earlier rational interface. The
-change is that the source proof can now include its local analytic material
-directly in the checked development, with the omission policy enforced by
-ACL2 code rather than manually separating that interface.
-
-`basel-interval` is an ordinary ACL2 client of the imported bound. Its interval
-is `[L^2/6-3/N, U^2/6]`; the enclosure theorem and width theorem are ordinary
-proofs. Fixed endpoints L and U impose an error floor. This does not implement
-arbitrary-precision pi enclosures or assert an irrational limit in ACL2.
+For this Basel development, the transferred theorem bounds a finite odd
+reciprocal-square sum using rational endpoints. The analytic source helpers
+remain in ACL2(r); the ordinary ACL2 partial-sum bounds, telescoping
+estimates, and executable interval are proved on the receiving side. See
+[Adapt ACL2r Proof.md](Adapt%20ACL2r%20Proof.md) for the mathematical
+derivation and [VALIDATION.md](VALIDATION.md) for the tested results.

@@ -1,340 +1,97 @@
-# Basel bounds through checked ACL2(r) event transfer
+# Basel bounds with ACL2 and ACL2(r)
 
-This package proves rational bounds for the Basel partial sums in ordinary
-ACL2, using an ACL2(r) proof and an explicit trust tag. The preparation,
-interface checking, export, and import are implemented in ACL2/ACL2(r).
-There is no Python step.
+This project proves explicit rational bounds on the partial sums
 
-The transfer mechanism is **restricted and trusted**, not a verified general
-importer for arbitrary ACL2(r) books. It omits proof-only local events outside
-nontrivial encapsulates from the export. It retains and checks every event
-inside a nontrivial encapsulate, including its local witnesses. The original
-source proof, including omitted helpers, is checked normally in ACL2(r).
-Matt Kaufmann's hidden square-root witness is a regression test.
-See [TRANSFER.md](TRANSFER.md) for the exact boundary and remaining trust.
-
-## Origin and scope
-
-This follows Matt Kaufmann's suggestion during Ruben Gamboa's ACL2 Workshop
-2026 talk, *An Alternative Proof in ACL2(r) of Euler's Solution to the Basel
-Problem*. The initial implementation used a manually audited, hard-coded
-theorem import. This revision replaces that mechanism with a reusable checked
-event interface and replaces the Python source adapter with ACL2 code. The
-Basel development now uses the clarified local-event policy: local analytic
-proof material stays in ACL2(r); the rational bounds cross the boundary.
-
-The mathematical results still use a fixed pi interval of width 10^-20.
-They establish finite bounds and a rational Cauchy estimate. They do not
-represent pi as an ordinary ACL2 number or implement an arbitrary-precision
-version of the exact Basel identity.
-
-## What changes at the boundary
-
-In ACL2(r), a development export has the form:
-
-```lisp
-(r2a-export-development example
-  (local (include-book "nonstd/nsa/sqrt" :dir :system))
-  (local (defun scratch-root () (acl2-sqrt 2)))
-  (defun rational-double (x) (* 2 (ifix x)))
-  (defthm double-is-rational
-    (rationalp (rational-double x))))
+```text
+S_N = 1 + 1/2^2 + ... + 1/N^2
 ```
 
-The checker constructs the retained interface and checks it. ACL2(r) then
-admits the ORIGINAL events normally, with proofs enabled. Only after both
-passes of the enclosing encapsulate succeed, and a second check finds no
-trust tags, skipped proofs, redefinitions, or added axioms, does it record
-the interface. After successful
-certification, a separate top-level command writes the receipt:
+The analytic finite bound is proved in ACL2(r). A checked, restricted
+interface transfers its rational result to ordinary ACL2, where the remaining
+finite-sum arguments and executable interval are proved. The transfer uses
+the trust tag `:acl2r-checked-transfer`; it is not a verified general-purpose
+importer. Read [TRANSFER.md](TRANSFER.md) before relying on that boundary.
 
-```lisp
-(r2a-write-export 'example "example.r2a" state)
-```
+## Quick start: use the dev container
 
-In ordinary ACL2:
+The recommended setup supplies both ACL2 flavors with separate books and
+certificate trees. You do not need to install SBCL or ACL2 on the host.
 
-```lisp
-(include-book "transfer")
-(r2a-import "example.r2a")
-```
+1. Open this repository in VS Code with the Dev Containers extension, or
+   create a Codespace from the repository.
+2. Choose **Dev Containers: Reopen in Container** if VS Code has not already
+   opened the repository in its container. Wait for the image build to finish.
+3. In the container terminal, certify and evaluate the ordinary ACL2 client:
 
-The importer rechecks the complete interface and admits definitions normally.
-It generates a local trusted clause processor for each theorem, with explicit
-supporters and tag `:acl2r-checked-transfer`. Its exact accepted clause is
-derived from that theorem; it has no hard-coded Basel proposition.
-The auxiliary predicates, processors, and supporting facts are local.
+   ```sh
+   scripts/acl2-certify.sh
+   ```
 
-A receipt is data from a trusted ACL2(r) run, **not a proof certificate checked
-by ordinary ACL2**. Its authenticity and the transfer implementation remain
-part of the trust obligation. Do not hand-edit receipts or the export table.
-
-## Results
-
-Let `S_N = sum(j=1,...,N) 1/j^2`, and let
-
-```
-L = 314159265358979323846 / 100000000000000000000
-U = 314159265358979323847 / 100000000000000000000
-```
-
-| Theorem | Result |
-| --- | --- |
-| `bq-fixed-basel-bounds` | For positive n: L^2/6 - (L^2+2)/(6*2^n) <= S_(2^n) <= U^2/6. |
-| `bq-fixed-all-partial-sums-bound` | For positive N: L^2/6 - 3/N <= S_N <= U^2/6. |
-| `bq-fixed-width-bound` | The dyadic enclosure width is less than 10^-19 + 2/2^n. |
-| `bq-partial-sums-tail` | For 1 <= m <= n: 0 <= S_n-S_m <= 1/m-1/n. No trust tag. |
-| `bq-cauchy-bound` | For rational eps > 0, m*eps >= 1 and 1 <= m <= n: abs(S_n-S_m) <= eps. No trust tag. |
-| `bq-finite-enclosure-from-odd-bound` | Rational endgame parameterized by rational endpoints. No trust tag. |
-| `bq-demo-2-to-80-terms` | 1.644934066848226436 <= S_(2^80) <= 1.644934066848226437. |
-| `bq-basel-interval-encloses-partial-sum` | The executable pair `bq-basel-interval(N)` encloses S_N for every positive N. |
-| `bq-basel-decimal-enclosure` | 1.644934066848226436 <= S_N <= 1.644934066848226437 for every N >= 10^20. |
-| `bq-basel-interval-width-at-10-to-20` | The computed interval has width < 10^-19 whenever N >= 10^20. |
-
-The transferable ACL2(r) result bounds the finite odd sum:
-
-```
-L^2 * (1/8 - 1/2^(n+3))
-  <= sum(j=1,...,2^(n-1)) 1/(2*j-1)^2
-  <= U^2/8.
-```
-
-All subsequent splitting, telescoping, and error propagation are ordinary
-ACL2 proofs. The range-sum definitions use exclusive upper endpoints;
-`bq-sum` supplies the extra 1 for an inclusive partial sum.
-
-## Quick start with the dev container
-
-The [dev container](https://containers.dev) in `.devcontainer/` builds SBCL
-2.6.10 from source and ACL2 from the `master` branch of
-<https://github.com/acl2/acl2> twice, as two independent installations,
-and precertifies the Community Books needed here. Open this repository in
-VS Code or Codespaces and reopen it in the container.
-
-| Installation | Executable | Role |
-| --- | --- | --- |
-| `/opt/acl2r` | `/opt/acl2r/saved_acl2r` (`acl2r`) | ACL2(r) source proof and receipt |
-| `/opt/acl2` | `/opt/acl2/saved_acl2` (`acl2`) | Ordinary ACL2 import and client books |
-
-The image is about 5.2 GB; the first build takes roughly 10-25 minutes.
-The ACL2 commit is recorded in `/opt/acl2/ACL2_COMMIT`, and the ACL2(r)
-`books/nonstd` commit in `/opt/acl2r/NONSTD_COMMIT`.
-
-Two scripts run the procedures documented below:
+`scripts/acl2-certify.sh` uses the checked-in `basel.r2a`; it does not
+generate `build/acl2r/new-basel.r2a`. To regenerate that receipt and certify
+the ordinary ACL2 books with it, run these two commands in order:
 
 ```sh
-scripts/acl2r-reproduce.sh                            # ACL2(r): proof and receipt
-scripts/acl2-certify.sh                               # ACL2: distributed basel.r2a
-scripts/acl2-certify.sh build/acl2r/new-basel.r2a     # ACL2: regenerated receipt
+scripts/acl2r-reproduce.sh
+scripts/acl2-certify.sh build/acl2r/new-basel.r2a
 ```
 
-`acl2r-reproduce.sh` regenerates `build/acl2r/new-basel.r2a` and compares it
-with `basel.r2a`. Each script prints PASS/FAIL lines, writes logs to
-`build/*/logs/`, and exits nonzero on any failure.
+The first container build downloads and compiles the dependencies. It needs
+at least 2 CPUs, 8 GB of memory, and 32 GB of storage; allow roughly
+10–25 minutes for the initial build. The built image is about 5.2 GB.
 
-### Keeping ACL2 and ACL2(r) certificates apart
+The scripts keep certificates separate by building in fresh, ignored
+directories under `build/acl2r/` and `build/acl2/`. They print PASS/FAIL
+results, write logs under `build/*/logs/`, and return a nonzero exit status
+if a check fails. The scripts recreate their respective build directories,
+so keep any files you need from those directories elsewhere.
 
-A `.cert` file is only meaningful to the kind of ACL2 that wrote it.
-`include-book` does reject a foreign one ("We do not permit ACL2 books to be
-processed by ACL2(r) or vice versa"), but `cert.pl` and `make` judge
-freshness by timestamps, so a stale foreign `.cert` makes a build fail
-rather than recertify. The setup keeps the two apart at every level:
-
-- **System books.** Each installation has its own source tree and `books/`
-  directory, certified only by its own executable. ACL2 finds system books
-  relative to its executable, and both scripts unset `ACL2_SYSTEM_BOOKS`.
-- **This package.** Each script copies only sources and receipts (never
-  `.cert`, `.port`, or `.fasl` files) into a fresh `build/acl2r/` or
-  `build/acl2/` and certifies there. Only `.r2a` receipts cross over.
-- **Executables.** Each script checks the prompt of its executable and
-  refuses to run `acl2r-reproduce.sh` with ordinary ACL2, or
-  `acl2-certify.sh` with ACL2(r).
-
-If you work by hand, do the same: certify in separate copies of the package
-(never in the repository root with both), and run `acl2` in one and `acl2r`
-in the other. `build/` is ignored by git.
-
-Without the container, set `ACL2_ROOT` and `ACL2R_ROOT` (or `ACL2` and
-`ACL2R`) to your own installations; see the header of each script.
-
-## Ordinary ACL2 certification
-
-Use an ordinary ACL2 installation with certified Community Books
-(`arithmetic-5`; `cert.pl` certifies it on demand if needed).
-The checked-in `basel.r2a` is the receipt produced by the ACL2(r) run
-documented in [VALIDATION.md](VALIDATION.md). From this directory:
+To try the interval interactively after running the ordinary certification:
 
 ```sh
-ACL2_ROOT=/absolute/path/to/ordinary-acl2
-"$ACL2_ROOT/books/build/cert.pl" --acl2 "$ACL2_ROOT/saved_acl2" \
-  transfer-tests.lisp development-tests.lisp example-import.lisp demo.lisp basel-interval.lisp
+cd build/acl2
+acl2
 ```
 
-`cert.pl` finds dependencies by scanning text, so the quoted `include-book`
-forms used as test data in `transfer-tests.lisp` and `development-tests.lisp`
-are split across lines; otherwise `cert.pl` looks for a nonexistent
-`unchecked.lisp` and stops.
-
-The `.acl2` files authorize only `:acl2r-checked-transfer`. To load:
+At the ACL2 prompt, load the client and evaluate an interval:
 
 ```lisp
 (include-book "basel-interval" :ttags (:acl2r-checked-transfer))
 (bq-basel-interval 100000000000000000000)
 ```
 
-The returned pair is `(lower . upper)`, containing exact rational endpoints.
-The function performs rational arithmetic on the index; it never calls the
-partial-sum function. Its width is `(U^2-L^2)/6 + 3/N`. The first term is the
-fixed pi-bound error, so increasing N alone cannot give arbitrary precision.
+The result is a pair `(lower . upper)` of exact rational numbers. The
+function computes the enclosure from its index; it does not calculate the
+partial sum. For `N >= 10^20`, the proved enclosure is within
+`[1.644934066848226436, 1.644934066848226437]` and has width less than
+`10^-19`.
 
-To use only the untrusted-import-free rational lemmas:
+## What is proved
 
-```lisp
-(include-book "rational-proofs")
+For positive `N`, the executable `bq-basel-interval(N)` encloses `S_N`.
+Its endpoints are
+
+```text
+lower = L^2/6 - 3/N
+upper = U^2/6
 ```
 
-## Reproduce the ACL2(r) proof and receipt
+where `L` and `U` are fixed rational bounds on pi, separated by
+`10^-20`. The fixed endpoints impose a precision floor: increasing `N`
+alone cannot make the interval arbitrarily narrow. The results are finite
+bounds and a rational Cauchy estimate, not an ordinary-ACL2 representation
+of pi or a proof using arbitrary-precision pi bounds.
 
-Use a separate checkout/copy of this package for ACL2(r) certificates.
-Do not reuse ordinary ACL2 certificates in ACL2(r), or vice versa.
-The upstream Basel source is:
+For the mathematical derivation, see [Adapt ACL2r Proof.md](Adapt%20ACL2r%20Proof.md).
+For details on accepted transfer events, trust assumptions, and limitations,
+see [TRANSFER.md](TRANSFER.md). The latest validation setup and recorded
+results are in [VALIDATION.md](VALIDATION.md).
 
-```
-https://github.com/acl2/acl2
-330a2344fa44d08fbd5fbf24c4b44a7473c9803d   (branch acl2r-context)
-books/nonstd/basel/
-```
+## Using your own ACL2 installations
 
-`books/nonstd/basel/` is **not** on ACL2's `master` branch. It exists only
-on the unmerged `acl2r-context` branch, which also changes other
-`books/nonstd` books; `basel-series.lisp` includes
-`nonstd/nsa/standard-close-utils`, which master lacks. Master has not
-changed `books/nonstd` since that branch's merge base, so the tested setup
-uses ACL2 from master with `books/nonstd` replaced by that commit's tree:
-
-```sh
-cd "$ACL2R_ROOT"    # a separate git checkout of acl2/acl2 master
-git fetch origin 330a2344fa44d08fbd5fbf24c4b44a7473c9803d
-git checkout FETCH_HEAD -- books/nonstd
-make LISP=sbcl ACL2_REAL=r
-```
-
-The dev container's `/opt/acl2r` is built exactly this way. Keep this
-checkout separate from the ordinary ACL2 one: the two `books/` trees hold
-different certificates. The ordinary ACL2 side does not need these books.
-
-The ACL2(r) installation needs certified nonstandard-analysis books. The
-interactive `certify-book` calls below do not certify dependencies, so first
-certify at least these, from `$ACL2R_ROOT/books`:
-
-```sh
-./build/cert.pl --acl2 "$ACL2R_ROOT/saved_acl2r" arithmetic-5/top \
-  nonstd/nsa/sqrt nonstd/nsa/exp nonstd/nsa/norm nonstd/nsa/trig \
-  nonstd/nsa/complex-polar nonstd/nsa/raise nonstd/nsa/standard-close-utils \
-  nonstd/basel/complex-helper
-```
-
-In a fresh ACL2(r) session in the separate package directory, certify the
-utilities and the upstream helper, undoing each certification event:
-
-```lisp
-(certify-book "transfer" 0)
-(u)
-(certify-book "transfer-tests" 0)
-(u)
-(certify-book "development-tests" 0)
-(u)
-(certify-book "prepare-basel" 0)
-(u)
-(certify-book "/ABS/ACL2R/books/nonstd/basel/complex-helper" 0)
-(u)
-
-(include-book "prepare-basel")
-(r2a-prepare-basel-development
- "/ABS/ACL2R/books/nonstd/basel/basel-series.lisp"
- "rational-defs.lisp"
- "acl2r-export-tail.lsp"
- "/ABS/ACL2R/books/nonstd/basel/complex-helper"
- "basel-analytic"
- "basel-source"
- state)
-(ubt 1)
-
-(certify-book "basel-analytic" 0)
-(u)
-(certify-book "basel-source" 0)
-(u)
-(include-book "basel-source")
-(r2a-write-export 'basel "new-basel.r2a" state)
-```
-
-Replace `/ABS/ACL2R` with the actual ACL2(r) checkout path (`/opt/acl2r` in
-the dev container), which must be writable
-because `complex-helper` is recertified in place. The last command refuses
-to overwrite an existing receipt. Compare `new-basel.r2a` with the distributed
-`basel.r2a`, or copy the newly produced receipt to the ordinary ACL2 directory.
-The receipt header records `acl2-version`; a build of current master still
-reports `ACL2 Version 8.7(r)`, so the regenerated receipt is byte-for-byte
-identical. A different version string alone would not change the
-transferred events.
-
-Commands typed at the ACL2 prompt keep running after an earlier failure, so
-check each certification summary (or use `scripts/acl2r-reproduce.sh`, which
-checks for errors, certificates and the receipt).
-
-`prepare-basel.lisp` reads Lisp forms with ACL2's reader. It creates
-`basel-analytic.lisp` from the upstream prefix before the local
-`big-upper-bound` theorem, substitutes shared sum definitions for the integral
-book, and proves the rationalized finite bound while its local lemmas remain
-available. It also creates `basel-source.lisp`: rational definitions, a local
-include of that analytic book, and the rational theorem, inside
-`r2a-export-development`. The local analytic include is omitted from the
-receipt; its irrational functions are never introduced in ordinary ACL2. The source
-adapter checks the expected cutoff and portable interface; it does not
-authenticate source files by hash. Successful proof in a clean ACL2(r)
-world, followed by checking the exported interface, is what matters.
-
-For the small encapsulate example, use `(ld "example-export.lsp")` in a
-fresh ACL2(r) session after certifying `transfer`, with no preexisting
-`example.r2a` output file.
-
-Run `(ld "development-source-tests.lsp")` in a fresh ACL2(r) session to test
-the new policy. The expected-error tests must finish with
-`:DEVELOPMENT-SOURCE-TESTS-PASSED`. These include a successful analytic-local
-development and rejection of a false local proof, Matt's witness, the real
-choice example, and a skipped proof hidden in a local event. Likewise,
-`(ld "export-failure-tests.lsp")` must finish with
-`:ALL-EXPECTED-EXPORT-FAILURES-CHECKED`. Both files stop at the first
-unexpected error, so reaching the final marker means every assertion passed.
-
-## Files
-
-- `transfer.lisp`: portable-interface checker, source export, receipt I/O,
-  and target event generation.
-- `transfer-tests.lisp`: positive and negative boundary tests.
-- `development-tests.lisp`, `development-source-tests.lsp`: projection and
-  source-proof regressions for the clarified local-event policy.
-- `example-export.lsp`, `example-import.lisp`: rational-witness encapsulate example.
-- `prepare-basel.lisp`, `acl2r-export-tail.lsp`: ACL2(r) Basel adaptation.
-- `rational-defs.lisp`, `rational-proofs.lisp`: shared definitions and rational proofs.
-- `trusted-bridge.lisp`, `basel-rational.lisp`, `demo.lisp`: generic import,
-  finite bounds, and large-index example.
-- `basel-interval.lisp`: executable rational intervals and uniform decimal bounds.
-- `basel.r2a`, `example.r2a`: generated transfer receipts.
-- `evidence/`: validation logs; `evidence/master-sbcl-2.6.10/` is the latest
-  run, and other logs describe earlier revisions.
-- `.devcontainer/`: one image with separate ACL2 and ACL2(r) installations.
-- `scripts/acl2r-reproduce.sh`, `scripts/acl2-certify.sh`: automated source and
-  target procedures, working in the ignored `build/` directory.
-
-## Sources
-
-- [Ruben's slides](https://www.cs.utexas.edu/~moore/acl2/workshop-2026/slides/basel-talk.pdf)
-- [Pinned Basel source](https://github.com/acl2/acl2/tree/330a2344fa44d08fbd5fbf24c4b44a7473c9803d/books/nonstd/basel)
-- Pi bounds: `books/nonstd/nsa/trig.lisp`, especially `m-pi`,
-  `m-pi+eps`, and `pi-tight-bound`.
-- [Trusted clause processors](https://acl2.org/doc/index-seo.php?xkey=ACL2____DEFINE-TRUSTED-CLAUSE-PROCESSOR)
-
-The range sums and elementary power-of-two induction track upstream code.
-New transfer and rational endgame code is MIT licensed. The source adapter
-reads upstream files from the user's checkout.
+The scripts default to `/opt/acl2` and `/opt/acl2r` in the dev container.
+Outside it, set `ACL2_ROOT` and `ACL2R_ROOT` to your respective installations
+(or set `ACL2` and `ACL2R` to the executable paths). Ordinary ACL2 and ACL2(r)
+must use separate source/book trees and separate package build directories;
+their `.cert` files cannot be shared. See the script headers and
+[TRANSFER.md](TRANSFER.md) for the manual workflow and trust contract.
