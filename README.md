@@ -12,6 +12,16 @@ finite-sum arguments and executable interval are proved. The transfer uses
 the trust tag `:acl2r-checked-transfer`; it is not a verified general-purpose
 importer. Read [TRANSFER.md](TRANSFER.md) before relying on that boundary.
 
+The checked-in `basel.r2a` file is a project-specific transfer receipt. The
+`.r2a` suffix is not an ACL2 standard, and the file is neither an ACL2 book
+nor a proof certificate: it is a versioned, ACL2-readable data object
+containing the selected portable events. Ordinary ACL2 reads it through the
+project's importer, which checks the event interface before admitting the
+events under the documented trust boundary. It does not independently verify
+the ACL2(r) source proof. The separate receipt format makes this cross-logic
+handoff distinct from ordinary ACL2 book and certificate files; the suffix
+itself provides no security.
+
 ## Quick start: use the dev container
 
 The recommended setup supplies both ACL2 flavors with separate books and

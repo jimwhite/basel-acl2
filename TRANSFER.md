@@ -6,6 +6,32 @@ there. The transfer is deliberately limited to a checked event interface.
 It is not a general ACL2(r) book importer, a verified transfer theorem, or a
 proof that arbitrary ACL2(r) results are valid in ordinary ACL2.
 
+## What is an `.r2a` file?
+
+`.r2a` is a project-specific file suffix, not an ACL2-standard extension.
+Here, the file is a versioned ACL2-readable data object with this shape:
+
+```lisp
+(:r2a-v1 "<ACL2 version>" (<portable events> ...))
+```
+
+It carries the selected event interface from ACL2(r) to the ordinary ACL2
+importer; it is not an ACL2 book to include directly and not a proof
+certificate. The importer reads the object as data, checks its shape and
+portable-event interface, and then processes those events under the trust
+boundary described below. The receipt does not let ordinary ACL2 verify the
+source proof on its own.
+
+ACL2's usual distribution mechanism is a book of events, certified and then
+included in a compatible ACL2 world (see the ACL2
+[Books documentation](https://acl2.org/doc/index-seo.php?xkey=ACL2____BOOKS)).
+This receipt is deliberately separate: it represents a narrow handoff
+between ACL2(r) and ordinary ACL2, rather than claiming to be a portable
+book or certificate. The suffix distinguishes that role for users and tools,
+but is not itself a security measure. This is a small project-specific
+format, so its version tag and importer checks are part of the interface
+that must be maintained.
+
 ## How to run the workflow
 
 For the standard workflow, use the commands in [README.md](README.md):
