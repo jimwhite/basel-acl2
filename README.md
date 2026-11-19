@@ -103,9 +103,45 @@ All subsequent splitting, telescoping, and error propagation are ordinary
 ACL2 proofs. The range-sum definitions use exclusive upper endpoints;
 `bq-sum` supplies the extra 1 for an inclusive partial sum.
 
+## Quick start with dev containers
+
+Two [dev container](https://containers.dev) configurations build SBCL 2.6.10
+from source and ACL2 from the `master` branch of
+<https://github.com/acl2/acl2>, then precertify the Community Books needed
+here. Open this repository in VS Code or Codespaces and choose one:
+
+| Configuration | Executable | Role |
+| --- | --- | --- |
+| `.devcontainer/acl2r` | `/opt/acl2/saved_acl2r` (`acl2r`) | ACL2(r) source proof and receipt |
+| `.devcontainer/acl2` | `/opt/acl2/saved_acl2` (`acl2`) | Ordinary ACL2 import and client books |
+
+Both share `.devcontainer/Dockerfile` (`ACL2_FLAVOR` build argument). Each
+image is about 3.3 GB (plus a shared 1 GB base image); building one takes
+roughly 5-15 minutes, depending on the machine. The ACL2
+commit used is recorded in `/opt/acl2/ACL2_COMMIT`.
+
+Each environment has a script that runs the procedure documented below in
+a fresh copy of the package under `build/acl2r/` or `build/acl2/`, so the
+two certificate sets never mix:
+
+```sh
+scripts/acl2r-reproduce.sh   # in the acl2r container
+scripts/acl2-certify.sh      # in the acl2 container; optional arg: receipt
+```
+
+`acl2r-reproduce.sh` regenerates `build/acl2r/new-basel.r2a` and compares it
+with `basel.r2a`. To import that regenerated receipt instead of the
+distributed one, run `scripts/acl2-certify.sh build/acl2r/new-basel.r2a`.
+Each script prints PASS/FAIL lines, writes logs to `build/*/logs/`, and exits
+nonzero on any failure.
+
+Without containers, set `ACL2_ROOT` (and optionally `ACL2` or `ACL2R`) to
+point at your own builds; see the header of each script.
+
 ## Ordinary ACL2 certification
 
-Use an ordinary ACL2 installation with certified Community Books.
+Use an ordinary ACL2 installation with certified Community Books
+(`arithmetic-5`; `cert.pl` certifies it on demand if needed).
 The checked-in `basel.r2a` is the receipt produced by the ACL2(r) run
 documented in [VALIDATION.md](VALIDATION.md). From this directory:
 
@@ -114,6 +150,11 @@ ACL2_ROOT=/absolute/path/to/ordinary-acl2
 "$ACL2_ROOT/books/build/cert.pl" --acl2 "$ACL2_ROOT/saved_acl2" \
   transfer-tests.lisp development-tests.lisp example-import.lisp demo.lisp basel-interval.lisp
 ```
+
+`cert.pl` finds dependencies by scanning text, so the quoted `include-book`
+forms used as test data in `transfer-tests.lisp` and `development-tests.lisp`
+are split across lines; otherwise `cert.pl` looks for a nonexistent
+`unchecked.lisp` and stops.
 
 The `.acl2` files authorize only `:acl2r-checked-transfer`. To load:
 
@@ -137,15 +178,42 @@ To use only the untrusted-import-free rational lemmas:
 
 Use a separate checkout/copy of this package for ACL2(r) certificates.
 Do not reuse ordinary ACL2 certificates in ACL2(r), or vice versa.
-The upstream source revision used for validation is:
+The upstream Basel source is:
 
 ```
 https://github.com/acl2/acl2
-330a2344fa44d08fbd5fbf24c4b44a7473c9803d
+330a2344fa44d08fbd5fbf24c4b44a7473c9803d   (branch acl2r-context)
 books/nonstd/basel/
 ```
 
-The ACL2(r) installation needs its certified nonstandard-analysis books.
+`books/nonstd/basel/` is **not** on ACL2's `master` branch. It exists only
+on the unmerged `acl2r-context` branch, which also changes other
+`books/nonstd` books; `basel-series.lisp` includes
+`nonstd/nsa/standard-close-utils`, which master lacks. Master has not
+changed `books/nonstd` since that branch's merge base, so the tested setup
+uses ACL2 from master with `books/nonstd` replaced by that commit's tree:
+
+```sh
+cd "$ACL2_ROOT"     # a git checkout of acl2/acl2 master
+git fetch origin 330a2344fa44d08fbd5fbf24c4b44a7473c9803d
+git checkout FETCH_HEAD -- books/nonstd
+make LISP=sbcl ACL2_REAL=r
+```
+
+The `.devcontainer/acl2r` image does exactly this. The ordinary ACL2 side
+does not need these books.
+
+The ACL2(r) installation needs certified nonstandard-analysis books. The
+interactive `certify-book` calls below do not certify dependencies, so first
+certify at least these, from `$ACL2_ROOT/books`:
+
+```sh
+./build/cert.pl --acl2 "$ACL2_ROOT/saved_acl2r" arithmetic-5/top \
+  nonstd/nsa/sqrt nonstd/nsa/exp nonstd/nsa/norm nonstd/nsa/trig \
+  nonstd/nsa/complex-polar nonstd/nsa/raise nonstd/nsa/standard-close-utils \
+  nonstd/basel/complex-helper
+```
+
 In a fresh ACL2(r) session in the separate package directory, certify the
 utilities and the upstream helper, undoing each certification event:
 
@@ -180,9 +248,18 @@ utilities and the upstream helper, undoing each certification event:
 (r2a-write-export 'basel "new-basel.r2a" state)
 ```
 
-Replace `/ABS/ACL2R` with the actual checkout path. The last command refuses
+Replace `/ABS/ACL2R` with the actual checkout path, which must be writable
+because `complex-helper` is recertified in place. The last command refuses
 to overwrite an existing receipt. Compare `new-basel.r2a` with the distributed
 `basel.r2a`, or copy the newly produced receipt to the ordinary ACL2 directory.
+The receipt header records `acl2-version`; a build of current master still
+reports `ACL2 Version 8.7(r)`, so the regenerated receipt is byte-for-byte
+identical. A different version string alone would not change the
+transferred events.
+
+Commands typed at the ACL2 prompt keep running after an earlier failure, so
+check each certification summary (or use `scripts/acl2r-reproduce.sh`, which
+checks for errors, certificates and the receipt).
 
 `prepare-basel.lisp` reads Lisp forms with ACL2's reader. It creates
 `basel-analytic.lisp` from the upstream prefix before the local
@@ -204,7 +281,10 @@ Run `(ld "development-source-tests.lsp")` in a fresh ACL2(r) session to test
 the new policy. The expected-error tests must finish with
 `:DEVELOPMENT-SOURCE-TESTS-PASSED`. These include a successful analytic-local
 development and rejection of a false local proof, Matt's witness, the real
-choice example, and a skipped proof hidden in a local event.
+choice example, and a skipped proof hidden in a local event. Likewise,
+`(ld "export-failure-tests.lsp")` must finish with
+`:ALL-EXPECTED-EXPORT-FAILURES-CHECKED`. Both files stop at the first
+unexpected error, so reaching the final marker means every assertion passed.
 
 ## Files
 
@@ -220,7 +300,11 @@ choice example, and a skipped proof hidden in a local event.
   finite bounds, and large-index example.
 - `basel-interval.lisp`: executable rational intervals and uniform decimal bounds.
 - `basel.r2a`, `example.r2a`: generated transfer receipts.
-- `evidence/`: validation logs; older logs describe the initial implementation.
+- `evidence/`: validation logs; `evidence/master-sbcl-2.6.10/` is the latest
+  run, and other logs describe earlier revisions.
+- `.devcontainer/`: shared `Dockerfile` plus `acl2/` and `acl2r/` configurations.
+- `scripts/acl2r-reproduce.sh`, `scripts/acl2-certify.sh`: automated source and
+  target procedures, working in the ignored `build/` directory.
 
 ## Sources
 

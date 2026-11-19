@@ -1,0 +1,267 @@
+This is SBCL 2.6.10, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ + ACL2 Version 8.7(r)+ (a development snapshot based on ACL2 Version 8.7(r)) +
+ +   built November 19, 2026  18:03:58.                                 +
+ +   (Note from the environment when this executable was saved:         +
+ +    Git commit hash: 043ce2f2e51aa3dd7fde519be0b1091d7bc4077a)        +
+ + Copyright (C) 2026, Regents of the University of Texas.              +
+ + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
+ + you are welcome to redistribute it under certain conditions.  For    +
+ + details, see the LICENSE file distributed with ACL2.                 +
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>> "ACL2"
+ACL2(r) !>>
+Summary
+Form:  ( INCLUDE-BOOK "transfer" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+ "/workspaces/basel-acl2/build/acl2r/transfer.lisp"
+ACL2(r) !>>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>>>
+
+ACL2 Error in R2A-EXPORT:  Rejected portable interface: 
+(:NONPORTABLE-DEFINITION (DEFUN MY-SQRT-2 NIL (ACL2-SQRT 2)))
+
+
+
+ACL2 Error in ( MAKE-EVENT (R2A-EXPORT-EVENT ...)):  Error in MAKE-
+EVENT from expansion of:
+  (R2A-EXPORT-EVENT 'REJECT-MATT
+                    '((ENCAPSULATE (#)
+                        (LOCAL #)
+                        (DEFTHM BAD #)))
+                    STATE)
+(See :DOC set-iprint to be able to see elided values in this message.)
+
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-EVENT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-EXPORT-EVENT ...)):  See
+:DOC failure.
+
+******** FAILED ********
+ :ERROR
+ACL2(r) !>> :PASSED
+ACL2(r) !>>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>>>
+
+ACL2(r) !>>>>(ENCAPSULATE NIL
+               (DEFTHM SOURCE-FALSE NIL))
+
+To verify that the encapsulated event correctly extends the current
+theory we will evaluate it.  The theory thus constructed is only ephemeral.
+
+Encapsulated Event:
+
+
+ACL2(r) !>>>>(DEFTHM SOURCE-FALSE NIL)
+
+
+ACL2 Error in ( DEFTHM SOURCE-FALSE ...):  A :REWRITE rule generated
+from SOURCE-FALSE is illegal because it rewrites the quoted constant
+'NIL.  For general information about rewrite rules in ACL2, see :DOC
+rewrite.
+
+
+Summary
+Form:  ( DEFTHM SOURCE-FALSE ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( DEFTHM SOURCE-FALSE ...):  See :DOC failure.
+
+******** FAILED ********
+
+ACL2 Warning in ( ENCAPSULATE NIL (DEFTHM ... NIL) ...):  The attempted
+ENCAPSULATE has failed while trying to establish the admissibility
+of one of the (local or non-local) forms in the body of the ENCAPSULATE.
+
+
+Summary
+Form:  ( ENCAPSULATE NIL (DEFTHM ... NIL) ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( ENCAPSULATE NIL (DEFTHM ... NIL) ...):  See
+:DOC failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( PROGN (ENCAPSULATE NIL ...) ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( PROGN (ENCAPSULATE NIL ...) ...):  See :DOC
+failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-EVENT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-EXPORT-EVENT ...)):  See
+:DOC failure.
+
+******** FAILED ********
+ :ERROR
+ACL2(r) !>> :PASSED
+ACL2(r) !>>
+Project-dir-alist:
+((:SYSTEM . "/opt/acl2/books/")).
+Type :help for help.
+Type (quit) to quit completely out of ACL2.
+
+ACL2(r) !>>>
+
+ACL2(r) !>>>>(ENCAPSULATE NIL
+               (LOCAL (DEFUN TEMPORARY-ID (X) X))
+               (DEFTHM ILLEGAL-LEAK
+                 (EQUAL (TEMPORARY-ID X) X)))
+
+To verify that the two encapsulated events correctly extend the current
+theory we will evaluate them.  The theory thus constructed is only
+ephemeral.
+
+Encapsulated Events:
+
+
+ACL2(r) !>>>>(LOCAL (DEFUN TEMPORARY-ID (X) X))
+
+Since TEMPORARY-ID is non-recursive, its admission is trivial.  We
+observe that the type of TEMPORARY-ID is described by the theorem 
+(EQUAL (TEMPORARY-ID X) X).  
+
+Summary
+Form:  ( DEFUN TEMPORARY-ID ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+TEMPORARY-ID
+
+
+ACL2(r) !>>>>(DEFTHM ILLEGAL-LEAK
+               (EQUAL (TEMPORARY-ID X) X))
+
+ACL2 Warning [Non-rec] in ( DEFTHM ILLEGAL-LEAK ...):  A :REWRITE rule
+generated from ILLEGAL-LEAK will be triggered only by terms containing
+the function symbol TEMPORARY-ID, which has a non-recursive definition.
+Unless this definition is disabled, this rule is unlikely ever to be
+used.
+
+
+ACL2 Warning [Subsume] in ( DEFTHM ILLEGAL-LEAK ...):  A newly proposed
+:REWRITE rule generated from ILLEGAL-LEAK probably subsumes the previously
+added :REWRITE rule TEMPORARY-ID, in the sense that the new rule will
+now probably be applied whenever the old rule would have been.
+
+
+ACL2 Warning [Subsume] in ( DEFTHM ILLEGAL-LEAK ...):  The previously
+added rule TEMPORARY-ID subsumes a newly proposed :REWRITE rule generated
+from ILLEGAL-LEAK, in the sense that the old rule rewrites a more general
+target.  Because the new rule will be tried first, it may nonetheless
+find application.
+
+
+Q.E.D.
+
+Summary
+Form:  ( DEFTHM ILLEGAL-LEAK ...)
+Rules: ((:DEFINITION TEMPORARY-ID))
+Warnings:  Subsume and Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  5
+ILLEGAL-LEAK
+
+End of Encapsulated Events.
+
+
+ACL2 Error [Translate] in ( DEFTHM ILLEGAL-LEAK ...):  The symbol 
+TEMPORARY-ID (in package "ACL2") has neither a function nor macro definition
+in ACL2.  Please define it.  See :DOC near-misses.  Note:  this error
+occurred in the context (TEMPORARY-ID X).
+
+
+ACL2 Error [Failure] in ( DEFTHM ILLEGAL-LEAK ...):  See :DOC failure.
+
+******** FAILED ********
+
+ACL2 Warning in ( ENCAPSULATE NIL (LOCAL ...) ...):  The error reported
+above is the manifestation of a local incompatibility.  See :DOC local-
+incompatibility.  The attempted ENCAPSULATE has failed.
+
+
+Summary
+Form:  ( ENCAPSULATE NIL (LOCAL ...) ...)
+Rules: NIL
+Warnings:  Subsume and Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  5
+
+ACL2 Error [Failure] in ( ENCAPSULATE NIL (LOCAL ...) ...):  See :DOC
+failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( PROGN (ENCAPSULATE NIL ...) ...)
+Rules: NIL
+Warnings:  Subsume and Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  5
+
+ACL2 Error [Failure] in ( PROGN (ENCAPSULATE NIL ...) ...):  See :DOC
+failure.
+
+******** FAILED ********
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-EVENT ...))
+Rules: NIL
+Warnings:  Subsume and Non-rec
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Prover steps counted:  5
+
+ACL2 Error [Failure] in ( MAKE-EVENT (R2A-EXPORT-EVENT ...)):  See
+:DOC failure.
+
+******** FAILED ********
+ :ERROR
+ACL2(r) !>> :PASSED
+ACL2(r) !>> :ALL-EXPECTED-EXPORT-FAILURES-CHECKED
+ACL2(r) !>>Bye.
+ :EOF
+ACL2(r) !>

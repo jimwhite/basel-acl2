@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Ordinary ACL2 target side: certify the client books as documented in
+# README.md ("Ordinary ACL2 certification") and evaluate the interval.
+#
+# Works in a fresh copy of the package under build/acl2 so that ordinary ACL2
+# certificates never mix with ACL2(r) certificates.
+#
+# Usage: scripts/acl2-certify.sh [RECEIPT]
+#   RECEIPT defaults to the distributed basel.r2a. Pass
+#   build/acl2r/new-basel.r2a to import a receipt you regenerated.
+# Env:   ACL2_ROOT (default /opt/acl2), ACL2 (default $ACL2_ROOT/saved_acl2),
+#        BUILD_DIR (default <repo>/build/acl2), JOBS (default 2)
+set -euo pipefail
+
+repo=$(cd "$(dirname "$0")/.." && pwd)
+receipt=$(realpath "${1:-$repo/basel.r2a}")
+ACL2_ROOT=${ACL2_ROOT:-/opt/acl2}
+ACL2=${ACL2:-$ACL2_ROOT/saved_acl2}
+build=${BUILD_DIR:-$repo/build/acl2}
+
+[ -x "$ACL2" ] || { echo "ACL2 executable not found: $ACL2" >&2; exit 2; }
+
+rm -rf "$build"
+mkdir -p "$build/logs"
+cp "$repo"/*.lisp "$repo"/*.lsp "$repo"/*.acl2 "$repo"/example.r2a "$build"/
+cp "$receipt" "$build/basel.r2a"
+cd "$build"
+
+fail=0
+check() {
+  if "${@:2}"; then echo "PASS: $1"; else echo "FAIL: $1"; fail=1; fi
+}
+# Result line printed by ACL2 (not the echoed input form, which also contains it).
+marker() { grep -qxE "(ACL2(\\(r\\))? !>+)?[[:space:]]*$1[[:space:]]*" "$2"; }
+
+echo "== cert.pl (receipt: $receipt)"
+if "$ACL2_ROOT/books/build/cert.pl" --acl2 "$ACL2" -j "${JOBS:-2}" \
+     transfer-tests.lisp development-tests.lisp example-import.lisp \
+     demo.lisp basel-interval.lisp > logs/cert.log 2>&1; then
+  echo "PASS: cert.pl"
+else
+  echo "FAIL: cert.pl (see $build/logs/cert.log)"; tail -40 logs/cert.log; fail=1
+fi
+for b in transfer transfer-tests development-tests example-import rational-defs \
+         rational-proofs trusted-bridge basel-rational demo basel-interval; do
+  check "$b.cert written" test -f "$b.cert"
+done
+
+echo "== books that must not use trust tags"
+"$ACL2" > logs/no-ttags.log 2>&1 <<'EOF' || true
+(progn (include-book "transfer" :ttags nil :uncertified-okp nil)
+       (include-book "rational-proofs" :ttags nil :uncertified-okp nil)
+       (value-triple :no-ttags-check-passed))
+(good-bye)
+EOF
+check "transfer, rational-proofs include with :ttags nil" \
+  marker ':NO-TTAGS-CHECK-PASSED' logs/no-ttags.log
+
+echo "== interval evaluation"
+"$ACL2" > logs/interval.log 2>&1 <<'EOF' || true
+(include-book "basel-interval" :ttags (:acl2r-checked-transfer)
+              :uncertified-okp nil)
+(bq-basel-interval 100000000000000000000)
+(progn
+ (assert-event
+  (let ((iv (bq-basel-interval 100000000000000000000)))
+    (equal (- (cdr iv) (car iv))
+           809439510239319549231/20000000000000000000000000000000000000000)))
+ (value-triple :interval-check-passed))
+(good-bye)
+EOF
+check "bq-basel-interval width at 10^20" marker ':INTERVAL-CHECK-PASSED' logs/interval.log
+
+echo "Logs: $build/logs"
+exit $fail
