@@ -2,8 +2,9 @@
 # Ordinary ACL2 target side: certify the client books as documented in
 # README.md ("Ordinary ACL2 certification") and evaluate the interval.
 #
-# Works in a fresh copy of the package under build/acl2 so that ordinary ACL2
-# certificates never mix with ACL2(r) certificates.
+# Certificate isolation: this works in a fresh copy of the package under
+# build/acl2 (only sources and receipts are copied, never .cert files), uses
+# the ordinary installation's own system books, and refuses to run ACL2(r).
 #
 # Usage: scripts/acl2-certify.sh [RECEIPT]
 #   RECEIPT defaults to the distributed basel.r2a. Pass
@@ -17,8 +18,14 @@ receipt=$(realpath "${1:-$repo/basel.r2a}")
 ACL2_ROOT=${ACL2_ROOT:-/opt/acl2}
 ACL2=${ACL2:-$ACL2_ROOT/saved_acl2}
 build=${BUILD_DIR:-$repo/build/acl2}
+# Use the system books that belong to this executable, not an override.
+unset ACL2_SYSTEM_BOOKS
 
 [ -x "$ACL2" ] || { echo "ACL2 executable not found: $ACL2" >&2; exit 2; }
+banner=$(echo '(good-bye)' | "$ACL2" 2>&1)
+if ! grep -q 'ACL2 !>' <<<"$banner" || grep -q 'ACL2(r) !>' <<<"$banner"; then
+  echo "$ACL2 is not ordinary ACL2; refusing to mix certificates" >&2; exit 2
+fi
 
 rm -rf "$build"
 mkdir -p "$build/logs"

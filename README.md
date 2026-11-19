@@ -103,40 +103,59 @@ All subsequent splitting, telescoping, and error propagation are ordinary
 ACL2 proofs. The range-sum definitions use exclusive upper endpoints;
 `bq-sum` supplies the extra 1 for an inclusive partial sum.
 
-## Quick start with dev containers
+## Quick start with the dev container
 
-Two [dev container](https://containers.dev) configurations build SBCL 2.6.10
-from source and ACL2 from the `master` branch of
-<https://github.com/acl2/acl2>, then precertify the Community Books needed
-here. Open this repository in VS Code or Codespaces and choose one:
+The [dev container](https://containers.dev) in `.devcontainer/` builds SBCL
+2.6.10 from source and ACL2 from the `master` branch of
+<https://github.com/acl2/acl2> twice, as two independent installations,
+and precertifies the Community Books needed here. Open this repository in
+VS Code or Codespaces and reopen it in the container.
 
-| Configuration | Executable | Role |
+| Installation | Executable | Role |
 | --- | --- | --- |
-| `.devcontainer/acl2r` | `/opt/acl2/saved_acl2r` (`acl2r`) | ACL2(r) source proof and receipt |
-| `.devcontainer/acl2` | `/opt/acl2/saved_acl2` (`acl2`) | Ordinary ACL2 import and client books |
+| `/opt/acl2r` | `/opt/acl2r/saved_acl2r` (`acl2r`) | ACL2(r) source proof and receipt |
+| `/opt/acl2` | `/opt/acl2/saved_acl2` (`acl2`) | Ordinary ACL2 import and client books |
 
-Both share `.devcontainer/Dockerfile` (`ACL2_FLAVOR` build argument). Each
-image is about 3.3 GB (plus a shared 1 GB base image); building one takes
-roughly 5-15 minutes, depending on the machine. The ACL2
-commit used is recorded in `/opt/acl2/ACL2_COMMIT`.
+The image is about 5.2 GB; the first build takes roughly 10-25 minutes.
+The ACL2 commit is recorded in `/opt/acl2/ACL2_COMMIT`, and the ACL2(r)
+`books/nonstd` commit in `/opt/acl2r/NONSTD_COMMIT`.
 
-Each environment has a script that runs the procedure documented below in
-a fresh copy of the package under `build/acl2r/` or `build/acl2/`, so the
-two certificate sets never mix:
+Two scripts run the procedures documented below:
 
 ```sh
-scripts/acl2r-reproduce.sh   # in the acl2r container
-scripts/acl2-certify.sh      # in the acl2 container; optional arg: receipt
+scripts/acl2r-reproduce.sh                            # ACL2(r): proof and receipt
+scripts/acl2-certify.sh                               # ACL2: distributed basel.r2a
+scripts/acl2-certify.sh build/acl2r/new-basel.r2a     # ACL2: regenerated receipt
 ```
 
 `acl2r-reproduce.sh` regenerates `build/acl2r/new-basel.r2a` and compares it
-with `basel.r2a`. To import that regenerated receipt instead of the
-distributed one, run `scripts/acl2-certify.sh build/acl2r/new-basel.r2a`.
-Each script prints PASS/FAIL lines, writes logs to `build/*/logs/`, and exits
-nonzero on any failure.
+with `basel.r2a`. Each script prints PASS/FAIL lines, writes logs to
+`build/*/logs/`, and exits nonzero on any failure.
 
-Without containers, set `ACL2_ROOT` (and optionally `ACL2` or `ACL2R`) to
-point at your own builds; see the header of each script.
+### Keeping ACL2 and ACL2(r) certificates apart
+
+A `.cert` file is only meaningful to the kind of ACL2 that wrote it.
+`include-book` does reject a foreign one ("We do not permit ACL2 books to be
+processed by ACL2(r) or vice versa"), but `cert.pl` and `make` judge
+freshness by timestamps, so a stale foreign `.cert` makes a build fail
+rather than recertify. The setup keeps the two apart at every level:
+
+- **System books.** Each installation has its own source tree and `books/`
+  directory, certified only by its own executable. ACL2 finds system books
+  relative to its executable, and both scripts unset `ACL2_SYSTEM_BOOKS`.
+- **This package.** Each script copies only sources and receipts (never
+  `.cert`, `.port`, or `.fasl` files) into a fresh `build/acl2r/` or
+  `build/acl2/` and certifies there. Only `.r2a` receipts cross over.
+- **Executables.** Each script checks the prompt of its executable and
+  refuses to run `acl2r-reproduce.sh` with ordinary ACL2, or
+  `acl2-certify.sh` with ACL2(r).
+
+If you work by hand, do the same: certify in separate copies of the package
+(never in the repository root with both), and run `acl2` in one and `acl2r`
+in the other. `build/` is ignored by git.
+
+Without the container, set `ACL2_ROOT` and `ACL2R_ROOT` (or `ACL2` and
+`ACL2R`) to your own installations; see the header of each script.
 
 ## Ordinary ACL2 certification
 
@@ -194,21 +213,22 @@ changed `books/nonstd` since that branch's merge base, so the tested setup
 uses ACL2 from master with `books/nonstd` replaced by that commit's tree:
 
 ```sh
-cd "$ACL2_ROOT"     # a git checkout of acl2/acl2 master
+cd "$ACL2R_ROOT"    # a separate git checkout of acl2/acl2 master
 git fetch origin 330a2344fa44d08fbd5fbf24c4b44a7473c9803d
 git checkout FETCH_HEAD -- books/nonstd
 make LISP=sbcl ACL2_REAL=r
 ```
 
-The `.devcontainer/acl2r` image does exactly this. The ordinary ACL2 side
-does not need these books.
+The dev container's `/opt/acl2r` is built exactly this way. Keep this
+checkout separate from the ordinary ACL2 one: the two `books/` trees hold
+different certificates. The ordinary ACL2 side does not need these books.
 
 The ACL2(r) installation needs certified nonstandard-analysis books. The
 interactive `certify-book` calls below do not certify dependencies, so first
-certify at least these, from `$ACL2_ROOT/books`:
+certify at least these, from `$ACL2R_ROOT/books`:
 
 ```sh
-./build/cert.pl --acl2 "$ACL2_ROOT/saved_acl2r" arithmetic-5/top \
+./build/cert.pl --acl2 "$ACL2R_ROOT/saved_acl2r" arithmetic-5/top \
   nonstd/nsa/sqrt nonstd/nsa/exp nonstd/nsa/norm nonstd/nsa/trig \
   nonstd/nsa/complex-polar nonstd/nsa/raise nonstd/nsa/standard-close-utils \
   nonstd/basel/complex-helper
@@ -248,7 +268,8 @@ utilities and the upstream helper, undoing each certification event:
 (r2a-write-export 'basel "new-basel.r2a" state)
 ```
 
-Replace `/ABS/ACL2R` with the actual checkout path, which must be writable
+Replace `/ABS/ACL2R` with the actual ACL2(r) checkout path (`/opt/acl2r` in
+the dev container), which must be writable
 because `complex-helper` is recertified in place. The last command refuses
 to overwrite an existing receipt. Compare `new-basel.r2a` with the distributed
 `basel.r2a`, or copy the newly produced receipt to the ordinary ACL2 directory.
@@ -302,7 +323,7 @@ unexpected error, so reaching the final marker means every assertion passed.
 - `basel.r2a`, `example.r2a`: generated transfer receipts.
 - `evidence/`: validation logs; `evidence/master-sbcl-2.6.10/` is the latest
   run, and other logs describe earlier revisions.
-- `.devcontainer/`: shared `Dockerfile` plus `acl2/` and `acl2r/` configurations.
+- `.devcontainer/`: one image with separate ACL2 and ACL2(r) installations.
 - `scripts/acl2r-reproduce.sh`, `scripts/acl2-certify.sh`: automated source and
   target procedures, working in the ignored `build/` directory.
 

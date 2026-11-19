@@ -3,21 +3,27 @@
 # README.md ("Reproduce the ACL2(r) proof and receipt"), plus the example
 # export and the expected-error regressions.
 #
-# Works in a fresh copy of the package under build/acl2r so that ACL2(r)
-# certificates never mix with ordinary ACL2 certificates.
+# Certificate isolation: this works in a fresh copy of the package under
+# build/acl2r (only sources are copied, never .cert files), uses the ACL2(r)
+# installation's own system books, and refuses to run a non-ACL2(r) executable.
 #
 # Usage: scripts/acl2r-reproduce.sh
-# Env:   ACL2_ROOT (default /opt/acl2), ACL2R (default $ACL2_ROOT/saved_acl2r),
+# Env:   ACL2R_ROOT (default /opt/acl2r), ACL2R (default $ACL2R_ROOT/saved_acl2r),
 #        BUILD_DIR (default <repo>/build/acl2r)
 set -euo pipefail
 
 repo=$(cd "$(dirname "$0")/.." && pwd)
-ACL2_ROOT=${ACL2_ROOT:-/opt/acl2}
-ACL2R=${ACL2R:-$ACL2_ROOT/saved_acl2r}
+ACL2R_ROOT=${ACL2R_ROOT:-/opt/acl2r}
+ACL2R=${ACL2R:-$ACL2R_ROOT/saved_acl2r}
 build=${BUILD_DIR:-$repo/build/acl2r}
-basel=$ACL2_ROOT/books/nonstd/basel
+basel=$ACL2R_ROOT/books/nonstd/basel
+# Use the system books that belong to this executable, not an override.
+unset ACL2_SYSTEM_BOOKS
 
 [ -x "$ACL2R" ] || { echo "ACL2(r) executable not found: $ACL2R" >&2; exit 2; }
+echo '(good-bye)' | "$ACL2R" 2>&1 | grep -q 'ACL2(r) !>' || {
+  echo "$ACL2R is not ACL2(r); refusing to mix certificates" >&2; exit 2
+}
 [ -f "$basel/basel-series.lisp" ] || {
   echo "Missing $basel/basel-series.lisp (see README: acl2r-context branch)" >&2
   exit 2
