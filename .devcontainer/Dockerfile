@@ -64,7 +64,7 @@ RUN set -eux; \
     make LISP=sbcl || { tail -60 make.log; exit 1; }; \
     test -x saved_acl2; rm -f *.o; \
     books/build/cert.pl --acl2 /opt/acl2/saved_acl2 -j "${CERT_JOBS}" \
-      books/arithmetic-5/top
+      books/arithmetic-5/top books/std/testing/must-fail
 
 # ACL2(r) and the nonstandard-analysis books needed by the Basel source.
 WORKDIR /opt/acl2r
@@ -76,7 +76,8 @@ RUN set -eux; \
     ./build/cert.pl --acl2 /opt/acl2r/saved_acl2r -j "${CERT_JOBS}" \
       arithmetic-5/top nonstd/nsa/sqrt nonstd/nsa/exp nonstd/nsa/norm \
       nonstd/nsa/trig nonstd/nsa/complex-polar nonstd/nsa/raise \
-      nonstd/nsa/standard-close-utils nonstd/basel/complex-helper
+      nonstd/nsa/standard-close-utils nonstd/basel/complex-helper \
+      std/testing/must-fail
 
 USER root
 RUN ln -s /opt/acl2/saved_acl2 /usr/local/bin/acl2 \

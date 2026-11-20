@@ -1,13 +1,12 @@
 {
-  "upstream_commit": "330a2344fa44d08fbd5fbf24c4b44a7473c9803d",
+  "acl2_commit": "043ce2f2e51aa3dd7fde519be0b1091d7bc4077a",
+  "upstream_nonstd_commit": "330a2344fa44d08fbd5fbf24c4b44a7473c9803d",
   "upstream_sha256": {
     "basel-bound.lisp": "d3fbffd1fa0533f8868b2291b3921848fdf97c06e3493229c9cf431ebd0c38be",
     "basel-series.lisp": "3aae65ce45678e6f464f0126aa2e63ca3bf24423f1007d083f5cc14c5421e4b4",
     "complex-helper.lisp": "3441855489a317b72590596b4c7a7ffc0ebc63133e1b533cce83bd50c356d8e1"
   },
-  "shared_definitions_sha256": "37a5eba35bef4424ac69f792c65abc12dc7b6153b2a580a76dac42e794b8975f",
-  "export_tail_sha256": "dac0af796d639e491b601d84fa6933d007c852f848fd214dea70d636857361e2",
-  "theorem": "(bq-fixed-odd-enclosure n)",
-  "transformation": "prefix before big-upper-bound; replace basel-bound include with shared definitions; append export",
-  "status": "prepared; not a certification receipt"
+  "lisp": "SBCL 2.2.9.debian",
+  "exported_theorem": "(bq-fixed-odd-enclosure n)",
+  "logs": ["acl2r/", "acl2/"]
 }

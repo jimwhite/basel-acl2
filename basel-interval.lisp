@@ -1,7 +1,8 @@
 ; Executable rational enclosure API for the Basel example.
 ; No summation is performed by bq-basel-interval.
+; cert_param: (non-acl2r)
 (in-package "ACL2")
-(include-book "basel-rational" :ttags (:acl2r-checked-transfer))
+(include-book "basel-rational" :ttags ((:acl2r-checked-transfer)))
 (local (include-book "arithmetic-5/top" :dir :system))
 
 (defun bq-basel-interval (n)

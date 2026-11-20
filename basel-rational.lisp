@@ -1,15 +1,16 @@
 ; Fixed-precision rational consequence of the ACL2(r) Basel proof.
 ; SPDX-License-Identifier: MIT
+; cert_param: (non-acl2r)
 (in-package "ACL2")
 (include-book "rational-proofs")
 (local (include-book "arithmetic-5/top" :dir :system))
-(include-book "trusted-bridge" :ttags (:acl2r-checked-transfer))
+(include-book "basel-import" :ttags ((:acl2r-checked-transfer)))
 
 (defthm bq-fixed-dyadic-enclosure
   (implies (posp n)
            (bq-dyadic-enclosurep n (bq-pi-lo) (bq-pi-hi)))
   :hints (("Goal"
-           :use ((:instance bq-imported-odd-enclosure)
+           :use ((:instance bq-fixed-odd-enclosure-export)
                  (:instance bq-finite-enclosure-from-odd-bound
                             (lo (bq-pi-lo)) (hi (bq-pi-hi))))
            :in-theory '(bq-fixed-odd-enclosure bq-pi-lo bq-pi-hi))))

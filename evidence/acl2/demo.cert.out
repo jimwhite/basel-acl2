@@ -1,11 +1,11 @@
 "-*- Mode: auto-revert -*-"
-/workspace/scratch/fbe6ac8cde8b/basel-acl2
-HOST: a209b88a28ee
+build/acl2
+HOST: adc-sandbox
 
 Environment variables:
 ACL2_CUSTOMIZATION=NONE
-ACL2_SYSTEM_BOOKS=/workspace/scratch/fbe6ac8cde8b/validation/acl2/books
-ACL2=/workspace/scratch/fbe6ac8cde8b/validation/acl2/saved_acl2
+ACL2_SYSTEM_BOOKS=/opt/acl2/books
+ACL2=/opt/acl2/saved_acl2
 ACL2_USELESS_RUNES=-25
 
 Temp lisp file:
@@ -25,7 +25,7 @@ Temp lisp file:
 (acl2::assign acl2::get-internal-time-as-realtime acl2::t)
 #-cmucl (acl2::gc-verbose t)
 ; instructions from .acl2 file demo.acl2:
-; cert-flags: ? t :ttags (:basel-acl2r-finite-bounds)
+; cert-flags: ? t :ttags ((:acl2r-checked-transfer))
 
 
 ; Prevent reset-prehistory while loading .port files
@@ -34,18 +34,18 @@ Temp lisp file:
 (acl2::ld "basel-rational.port" :ld-missing-input-ok t :ld-always-skip-top-level-locals t)
 #!ACL2 (set-ld-error-action (quote :continue) state)
 
-; certify-book command flags: ? t :ttags (:basel-acl2r-finite-bounds)
-#!ACL2 (er-progn (time$ (certify-book "demo" ? t :ttags (:basel-acl2r-finite-bounds)  ))
+; certify-book command flags: ? t :ttags ((:acl2r-checked-transfer))
+#!ACL2 (er-progn (time$ (certify-book "demo" ? t :ttags ((:acl2r-checked-transfer))  ))
                                  (value (prog2$ #+hons (memsum)
                                                  #-hons nil
                                                  (exit 43))))
 --- End temp lisp file ---
 
-TARGET: ../../basel-acl2/demo
+TARGET: demo
 STEP: certify
 Start of output:
 
-This is SBCL 2.5.2.debian, an implementation of ANSI Common Lisp.
+This is SBCL 2.2.9.debian, an implementation of ANSI Common Lisp.
 More information about SBCL is available at <http://www.sbcl.org/>.
 
 SBCL is free software, provided as is, with absolutely no warranty.
@@ -55,8 +55,9 @@ distribution for more information.
 
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  + ACL2 Version 8.7+ (a development snapshot based on ACL2 Version 8.7) +
- +   built November 17, 2026  13:43:13.                                 +
- +   (Git commit hash: 330a2344fa44d08fbd5fbf24c4b44a7473c9803d)        +
+ +   built November 20, 2026  01:10:56.                                 +
+ +   (Note from the environment when this executable was saved:         +
+ +    Git commit hash: 043ce2f2e51aa3dd7fde519be0b1091d7bc4077a)        +
  + Copyright (C) 2026, Regents of the University of Texas.              +
  + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
  + you are welcome to redistribute it under certain conditions.  For    +
@@ -64,7 +65,7 @@ distribution for more information.
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Project-dir-alist:
-((:SYSTEM . "/workspace/scratch/fbe6ac8cde8b/validation/acl2/books/")).
+((:SYSTEM . "/opt/acl2/books/")).
 Type :help for help.
 Type (quit) to quit completely out of ACL2.
 
@@ -73,7 +74,7 @@ Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
 * #<PACKAGE "ACL2">
 * 
 Project-dir-alist:
-((:SYSTEM . "/workspace/scratch/fbe6ac8cde8b/validation/acl2/books/")).
+((:SYSTEM . "/opt/acl2/books/")).
 Type :help for help.
 Type (quit) to quit completely out of ACL2.
 
@@ -89,7 +90,7 @@ NIL
 ACL2 !> T
 ACL2 !>
 Project-dir-alist:
-((:SYSTEM . "/workspace/scratch/fbe6ac8cde8b/validation/acl2/books/")).
+((:SYSTEM . "/opt/acl2/books/")).
 Type :help for help.
 Type (quit) to quit completely out of ACL2.
 
@@ -98,19 +99,19 @@ ACL2 !>>
 Summary
 Form:  ( INCLUDE-BOOK "std/portcullis" ...)
 Rules: NIL
-Time:  0.04 seconds (prove: 0.00, print: 0.00, other: 0.04)
- "/workspace/scratch/fbe6ac8cde8b/validation/acl2/books/std/portcullis.lisp"
+Time:  0.06 seconds (prove: 0.00, print: 0.00, other: 0.06)
+ "/opt/acl2/books/std/portcullis.lisp"
 ACL2 !>>Bye.
  :EOF
 ACL2 !> :CONTINUE
 ACL2 !>
-TTAG NOTE (for included book): Adding ttag :BASEL-ACL2R-FINITE-BOUNDS from book /workspace/scratch/fbe6ac8cde8b/basel-acl2/trusted-bridge.
+TTAG NOTE (for included book): Adding ttag :ACL2R-CHECKED-TRANSFER from book build/acl2/basel-import.
 
 Summary
 Form:  ( INCLUDE-BOOK "basel-rational" ...)
 Rules: NIL
-Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
-"/workspace/scratch/fbe6ac8cde8b/basel-acl2/basel-rational.lisp"
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
+"build/acl2/basel-rational.lisp"
 Goal'
 Goal''
 
@@ -135,10 +136,10 @@ BQ-DEMO-2-TO-80-TERMS
 Summary
 Form:  (CERTIFY-BOOK "demo" ...)
 Rules: NIL
-Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.00)
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
 Prover steps counted:  63
 ; (EV-REC *RETURN-LAST-ARG3* ...) took 
-; 0.01 seconds realtime, 0.01 seconds runtime
-; (6,371,968 bytes allocated).
+; 0.02 seconds realtime, 0.02 seconds runtime
+; (6,865,088 bytes allocated).
 Exit code from ACL2 is 43
--rw-r--r-- 1 agent agent 10028 Nov 17 13:44 demo.cert
+-rw-r--r-- 1 root root 9905 Nov 20 01:25 demo.cert

@@ -2,6 +2,17 @@
 ; SPDX-License-Identifier: MIT
 (in-package "ACL2")
 
+; Usage.  An ACL2(r) book whose entire content is
+;
+;   (in-package "ACL2")
+;   (include-book "transfer")
+;   (r2a-export NAME EVENT ...)
+;
+; proves EVENT ... in ACL2(r) when it is certified.  An ordinary ACL2 book
+; then calls (R2A-IMPORT "<that book>"), which reads the SAME source file,
+; derives the same portable interface with the same code, checks it, and
+; admits it.  No intermediate file is written by either side.
+;
 ; These utilities are executable checking/generation code, not a verified
 ; metatheorem.  The importer explicitly registers trusted clause processors.
 (program)
@@ -134,6 +145,13 @@
                (mv err (append out functions) out))))
        (mv (list :unsupported-signature-or-missing-witness event)
            functions nil)))
+    ((eq (car event) 'r2a-included-book)
+     ; A portable sibling book, already read by R2A-EXPAND-EVENTS. Its
+     ; events are checked as a trivial encapsulate: only its non-LOCAL
+     ; definitions extend the vocabulary.
+     (if (and (<= 2 (len event)) (stringp (cadr event)))
+         (r2a-check-event (list* 'encapsulate nil (cddr event)) functions)
+       (mv (list :malformed-included-book event) functions nil)))
     (t (mv (list :unsupported-event event) functions nil))))
  (defun r2a-check-events (events functions)
    (if (atom events)
@@ -155,6 +173,7 @@
      (local (list 'local (r2a-strip-proof (cadr event))))
      (encapsulate (list* 'encapsulate (cadr event)
                         (r2a-strip-proofs (cddr event))))
+     (r2a-included-book (list 'include-book (cadr event)))
      (otherwise event)))
  (defun r2a-strip-proofs (events)
    (if (endp events) nil
@@ -176,7 +195,7 @@
 
 ; Discard proof-only LOCAL events outside nontrivial encapsulates. Inside a
 ; nontrivial encapsulate retain EVERYTHING: in particular its witnesses.
-; The existing strict checker then checks this entire retained subtree.
+; The strict checker then checks this entire retained subtree.
 (mutual-recursion
  (defun r2a-project-event (event inside-signature)
    (cond
@@ -193,71 +212,148 @@
      (append (r2a-project-event (car events) inside-signature)
              (r2a-project-events (cdr events) inside-signature)))))
 
-(defun r2a-record-export (name events state)
+;;; Reading book sources
+
+(defun r2a-read-objects (channel acc state)
+  (declare (xargs :stobjs state))
+  (mv-let (eof object state) (read-object channel state)
+    (if eof (mv (reverse acc) state)
+      (r2a-read-objects channel (cons object acc) state))))
+
+; ACL2 and ACL2(r) read #+/#- differently, and the transfer depends on both
+; systems reading the same events.  Reject such text anywhere, even in
+; comments or strings: this is deliberately conservative.
+(defun r2a-reader-conditional-p (channel prev state)
+  (declare (xargs :stobjs state))
+  (mv-let (c state) (read-char$ channel state)
+    (cond ((null c) (mv nil state))
+          ((and (eql prev #\#) (member c '(#\+ #\-))) (mv t state))
+          (t (r2a-reader-conditional-p channel c state)))))
+
+; Return the forms after the initial (in-package "ACL2") of PATH.
+(defun r2a-read-book (path state)
+  (declare (xargs :stobjs state))
+  (let ((file (extend-pathname (cbd) path state)))
+    (mv-let (channel state) (open-input-channel file :character state)
+      (if (not channel) (er soft 'r2a-read-book "Cannot read ~x0." file)
+        (mv-let (conditionalp state) (r2a-reader-conditional-p channel nil state)
+          (let ((state (close-input-channel channel state)))
+            (if conditionalp
+                (er soft 'r2a-read-book
+                    "~x0 contains a #+ or #- reader conditional." file)
+              (mv-let (channel state) (open-input-channel file :object state)
+                (if (not channel) (er soft 'r2a-read-book "Cannot read ~x0." file)
+                  (mv-let (forms state) (r2a-read-objects channel nil state)
+                    (let ((state (close-input-channel channel state)))
+                      (if (equal (car forms) '(in-package "ACL2"))
+                          (value (cdr forms))
+                        (er soft 'r2a-read-book
+                            "~x0 does not begin with (in-package \"ACL2\")."
+                            file)))))))))))))
+
+(defun r2a-book-name-p (x)
+  (and (stringp x) (< 0 (length x))
+       (not (equal (char x 0) #\/))
+       (not (search ".lisp" x))))
+
+(defun r2a-sibling-name-p (x)
+  (and (r2a-book-name-p x) (not (search "/" x))))
+
+; Directory prefix of a relative book name, e.g. "a/b" -> "a/".
+(defun r2a-directory-part (name)
+  (let ((pos (search "/" name :from-end t)))
+    (if pos (subseq name 0 (1+ pos)) "")))
+
+; Replace each retained (INCLUDE-BOOK "name") by (R2A-INCLUDED-BOOK "name"
+; EVENT ...), the events of that sibling book, so that the checker sees and
+; checks them.  Only plain sibling books are supported; LOCAL proof-only
+; includes were already removed by R2A-PROJECT-EVENTS.
+(mutual-recursion
+ (defun r2a-expand-event (event dir seen state)
+   (declare (xargs :stobjs state))
+   (cond
+    ((not (and (consp event) (true-listp event))) (value event))
+    ((eq (car event) 'r2a-included-book)
+     (er soft 'r2a-expand "R2A-INCLUDED-BOOK is reserved: ~x0" event))
+    ((eq (car event) 'include-book)
+     (let* ((name (cadr event))
+            (book (and (stringp name) (concatenate 'string dir name))))
+       (cond
+        ((not (and (equal (len event) 2) (r2a-sibling-name-p name)))
+         (er soft 'r2a-expand
+             "A retained include-book must name a sibling book without ~
+              options: ~x0" event))
+        ((member-equal book seen)
+         (er soft 'r2a-expand "Circular include of ~x0." book))
+        (t (er-let* ((forms (r2a-read-book (concatenate 'string book ".lisp")
+                                           state))
+                     (events (r2a-expand-events (r2a-project-events forms nil)
+                                                dir (cons book seen) state)))
+             (value (list* 'r2a-included-book book events)))))))
+    ((and (eq (car event) 'local) (consp (cdr event)))
+     (er-let* ((x (r2a-expand-event (cadr event) dir seen state)))
+       (value (list* 'local x (cddr event)))))
+    ((and (eq (car event) 'encapsulate) (consp (cdr event)))
+     (er-let* ((xs (r2a-expand-events (cddr event) dir seen state)))
+       (value (list* 'encapsulate (cadr event) xs))))
+    (t (value event))))
+ (defun r2a-expand-events (events dir seen state)
+   (declare (xargs :stobjs state))
+   (if (atom events) (value events)
+     (er-let* ((x (r2a-expand-event (car events) dir seen state))
+               (xs (r2a-expand-events (cdr events) dir seen state)))
+       (value (cons x xs))))))
+
+; The checked interface of EVENTS: projected, expanded, and checked.
+(defun r2a-interface (ctx events dir state)
+  (declare (xargs :stobjs state))
+  (if (not (true-listp events))
+      (er soft ctx "Malformed event list: ~x0" events)
+    (er-let* ((interface (r2a-expand-events (r2a-project-events events nil)
+                                            dir nil state)))
+      (let ((err (r2a-interface-error interface)))
+        (if err
+            (er soft ctx
+                "Rejected retained definitions, witnesses, or theorem: ~x0"
+                err)
+          (value interface))))))
+
+;;; ACL2(r): prove and record an export
+
+(defun r2a-record-export (name interface state)
   (declare (xargs :stobjs state))
   (cond ((not (r2a-clean-worldp state))
          (er soft 'r2a-export
-             "The completed source proof used trust tags, skipped proofs, redefinition, or added axioms."))
-        ((r2a-interface-error events)
+             "The completed source proof used trust tags, skipped proofs, ~
+              redefinition, or added axioms."))
+        ((r2a-interface-error interface)
          (er soft 'r2a-export "Invalid retained interface."))
-        (t (value `(table r2a-exports ',name ',(r2a-strip-proofs events))))))
+        (t (value `(table r2a-exports ',name
+                          ',(r2a-strip-proofs interface))))))
 
-(defun r2a-write-receipt (path events state)
+(defun r2a-export-fn (name events state)
   (declare (xargs :stobjs state))
-  (if (not (r2a-clean-worldp state))
-      (er soft 'r2a-export "Requires ACL2(r), proofs enabled, and no skipped proofs or trust tags.")
-    (mv-let (channel state) (open-output-channel path :character state)
-      (if (not channel) (er soft 'r2a-export "Cannot write ~x0." path)
-        (let* ((state (print-object$ (list :r2a-v1 (f-get-global 'acl2-version state)
-                                         (r2a-strip-proofs events)) channel state))
-               (state (close-output-channel channel state)))
-          (value :r2a-exported))))))
-
-(defun r2a-export-event (name events state)
-  (declare (xargs :stobjs state))
-  (let ((err (r2a-interface-error events)))
-    (cond (err (er soft 'r2a-export "Rejected portable interface: ~x0" err))
-          ((not (r2a-clean-worldp state))
-           (er soft 'r2a-export "Requires a clean ACL2(r) proof world."))
-          (t
-           ; Record only AFTER both passes have succeeded. Writing a file
-           ; takes place in a separate top-level command, never in MAKE-EVENT.
-           (value `(progn
-                     (encapsulate () ,@events)
-                     (make-event (r2a-record-export ',name ',events state))))))))
-
-(defmacro r2a-export (name &rest events)
-  `(make-event (r2a-export-event ',name ',events state)))
-
-(defun r2a-export-development-event (name events state)
-  (declare (xargs :stobjs state))
-  (let* ((interface (r2a-project-events events nil))
-         (err (r2a-interface-error interface)))
-    (cond (err (er soft 'r2a-export-development
-                  "Rejected retained definitions, witnesses, or theorem: ~x0" err))
-          ((not (r2a-clean-worldp state))
-           (er soft 'r2a-export-development "Requires a clean ACL2(r) proof world."))
-          (t
+  (cond ((not (symbolp name))
+         (er soft 'r2a-export "The export name must be a symbol: ~x0" name))
+        ((not (r2a-clean-worldp state))
+         (er soft 'r2a-export
+             "Requires ACL2(r), proofs enabled, and no trust tags, skipped ~
+              proofs, redefinition, or added axioms."))
+        (t
+         (er-let* ((interface (r2a-interface 'r2a-export events "" state)))
            (value
             `(progn
                ; Prove the ORIGINAL events, with their analytic local helpers.
-               (encapsulate () ,@events)
-               ; Only record after both passes and a fresh trust-state check.
+               ; PROGN, not ENCAPSULATE, so retained INCLUDE-BOOKs are legal;
+               ; the export book's shape makes this the book's only event.
+               (progn ,@events)
+               ; Record only after both passes and a fresh trust-state check.
                (make-event (r2a-record-export ',name ',interface state))))))))
 
-(defmacro r2a-export-development (name &rest events)
-  `(make-event (r2a-export-development-event ',name ',events state)))
+(defmacro r2a-export (name &rest events)
+  `(make-event (r2a-export-fn ',name ',events state)))
 
-(defun r2a-write-export (name path state)
-  (declare (xargs :stobjs state))
-  (let ((entry (assoc-eq name (table-alist 'r2a-exports (w state)))))
-    (if (or (not entry) (r2a-interface-error (cdr entry)))
-        (er soft 'r2a-write-export "No checked export named ~x0." name)
-      (mv-let (channel state) (open-input-channel path :object state)
-        (if channel
-            (let ((state (close-input-channel channel state)))
-              (er soft 'r2a-write-export "Refusing to overwrite receipt ~x0." path))
-          (r2a-write-receipt path (cdr entry) state))))))
+;;; Ordinary ACL2: import an export from its ACL2(r) source book
 
 ; Every theorem gets its own predicate and exact singleton-clause processor.
 ; This avoids assuming that the theorem's surface syntax equals a clause.
@@ -296,6 +392,8 @@
       (list* 'encapsulate (cadr event)
              (r2a-import-events (cddr event)
                                 (append (strip-cars (cadr event)) functions))))
+     ; The sibling book is certified and included natively in ACL2.
+     (r2a-included-book (list 'include-book (cadr event)))
      (otherwise event)))
  (defun r2a-import-events (events functions)
    (if (endp events) nil
@@ -304,27 +402,48 @@
        (cons (r2a-import-event (car events) functions)
              (r2a-import-events (cdr events) fs))))))
 
-(defun r2a-import-file (path state)
+; The source book must consist of exactly these forms, so that no other
+; event in it can affect what ACL2(r) proves.
+(defun r2a-export-book-p (forms)
+  (and (equal (len forms) 2)
+       ; Built with LIST so that cert.pl does not read it as a dependency.
+       (equal (car forms) (list 'include-book "transfer"))
+       (true-listp (cadr forms))
+       (<= 2 (len (cadr forms)))
+       (eq (car (cadr forms)) 'r2a-export)
+       (symbolp (cadr (cadr forms)))))
+
+; Return (NAME . INTERFACE) for the export in the source book BOOK.
+(defun r2a-source-export (book state)
+  (declare (xargs :stobjs state))
+  (cond
+   ((not (r2a-book-name-p book))
+    (er soft 'r2a-import "Expected a relative book name, got ~x0." book))
+   ((not (equal (current-package state) "ACL2"))
+    (er soft 'r2a-import "Import from the \"ACL2\" package."))
+   (t
+    (er-let* ((forms (r2a-read-book (concatenate 'string book ".lisp") state)))
+      (if (not (r2a-export-book-p forms))
+          (er soft 'r2a-import
+              "~x0 must contain only (in-package \"ACL2\"), (include-book ~
+               \"transfer\"), and one R2A-EXPORT form." book)
+        (let ((export (cadr forms)))
+          (er-let* ((interface (r2a-interface 'r2a-import (cddr export)
+                                              (r2a-directory-part book)
+                                              state)))
+            (value (cons (cadr export) interface)))))))))
+
+(defun r2a-import-fn (book state)
   (declare (xargs :stobjs state))
   (if *r2a-real-build*
       (er soft 'r2a-import "Run the importer in ordinary ACL2.")
-    (mv-let (channel state) (open-input-channel path :object state)
-      (if (not channel) (er soft 'r2a-import "Cannot read ~x0." path)
-        (mv-let (eof receipt state) (read-object channel state)
-          (mv-let (eof2 extra state) (read-object channel state)
-            (declare (ignore extra))
-            (let ((state (close-input-channel channel state)))
-              (if (or eof (not eof2) (not (true-listp receipt))
-                      (not (equal (len receipt) 3))
-                      (not (eq (car receipt) :r2a-v1))
-                      (not (stringp (cadr receipt))))
-                  (er soft 'r2a-import "Malformed transfer receipt.")
-                (let* ((events (caddr receipt))
-                       (err (r2a-interface-error events)))
-                  (if err (er soft 'r2a-import "Rejected portable interface: ~x0" err)
-                    (value (cons 'progn (r2a-import-events events nil)))))))))))))
+    (er-let* ((export (r2a-source-export book state)))
+      (value `(progn
+                ,@(r2a-import-events (cdr export) nil)
+                (table r2a-exports ',(car export)
+                       ',(r2a-strip-proofs (cdr export))))))))
 
-(defmacro r2a-import (path)
-  `(make-event (r2a-import-file ,path state)))
+(defmacro r2a-import (book)
+  `(make-event (r2a-import-fn ,book state)))
 
 (logic)

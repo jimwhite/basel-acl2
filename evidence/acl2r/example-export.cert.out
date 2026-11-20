@@ -1,11 +1,11 @@
 "-*- Mode: auto-revert -*-"
-/workspace/scratch/fbe6ac8cde8b/basel-acl2
-HOST: a209b88a28ee
+build/acl2r
+HOST: adc-sandbox
 
 Environment variables:
 ACL2_CUSTOMIZATION=NONE
-ACL2_SYSTEM_BOOKS=/workspace/scratch/fbe6ac8cde8b/validation/acl2/books
-ACL2=/workspace/scratch/fbe6ac8cde8b/validation/acl2/saved_acl2
+ACL2_SYSTEM_BOOKS=/opt/acl2r/books
+ACL2=/opt/acl2r/saved_acl2r
 ACL2_USELESS_RUNES=-25
 
 Temp lisp file:
@@ -24,28 +24,27 @@ Temp lisp file:
 
 (acl2::assign acl2::get-internal-time-as-realtime acl2::t)
 #-cmucl (acl2::gc-verbose t)
-; instructions from .acl2 file trusted-bridge.acl2:
-; cert-flags: ? t :ttags (:basel-acl2r-finite-bounds)
+; instructions from .acl2 file :
 
 
 ; Prevent reset-prehistory while loading .port files
 (acl2::assign acl2::skip-reset-prehistory acl2::t)
 ; portculli for included books:
-(acl2::ld "rational-defs.port" :ld-missing-input-ok t :ld-always-skip-top-level-locals t)
+(acl2::ld "transfer.port" :ld-missing-input-ok t :ld-always-skip-top-level-locals t)
 #!ACL2 (set-ld-error-action (quote :continue) state)
 
-; certify-book command flags: ? t :ttags (:basel-acl2r-finite-bounds)
-#!ACL2 (er-progn (time$ (certify-book "trusted-bridge" ? t :ttags (:basel-acl2r-finite-bounds)  ))
+; certify-book command flags: ? t
+#!ACL2 (er-progn (time$ (certify-book "example-export" ? t  ))
                                  (value (prog2$ #+hons (memsum)
                                                  #-hons nil
                                                  (exit 43))))
 --- End temp lisp file ---
 
-TARGET: ../../basel-acl2/trusted-bridge
+TARGET: example-export
 STEP: certify
 Start of output:
 
-This is SBCL 2.5.2.debian, an implementation of ANSI Common Lisp.
+This is SBCL 2.2.9.debian, an implementation of ANSI Common Lisp.
 More information about SBCL is available at <http://www.sbcl.org/>.
 
 SBCL is free software, provided as is, with absolutely no warranty.
@@ -54,9 +53,10 @@ BSD-style licenses.  See the CREDITS and COPYING files in the
 distribution for more information.
 
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- + ACL2 Version 8.7+ (a development snapshot based on ACL2 Version 8.7) +
- +   built November 17, 2026  13:43:13.                                 +
- +   (Git commit hash: 330a2344fa44d08fbd5fbf24c4b44a7473c9803d)        +
+ + ACL2 Version 8.7(r)+ (a development snapshot based on ACL2 Version 8.7(r)) +
+ +   built November 20, 2026  01:11:59.                                 +
+ +   (Note from the environment when this executable was saved:         +
+ +    Git commit hash: 043ce2f2e51aa3dd7fde519be0b1091d7bc4077a)        +
  + Copyright (C) 2026, Regents of the University of Texas.              +
  + ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and   +
  + you are welcome to redistribute it under certain conditions.  For    +
@@ -64,96 +64,126 @@ distribution for more information.
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Project-dir-alist:
-((:SYSTEM . "/workspace/scratch/fbe6ac8cde8b/validation/acl2/books/")).
+((:SYSTEM . "/opt/acl2r/books/")).
 Type :help for help.
 Type (quit) to quit completely out of ACL2.
 
-ACL2 !>
+ACL2(r) !>
 Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
 * #<PACKAGE "ACL2">
 * 
 Project-dir-alist:
-((:SYSTEM . "/workspace/scratch/fbe6ac8cde8b/validation/acl2/books/")).
+((:SYSTEM . "/opt/acl2r/books/")).
 Type :help for help.
 Type (quit) to quit completely out of ACL2.
 
-ACL2 !><state>
-ACL2 !> "ACL2"
-ACL2 !> (:EXIT 1)
-ACL2 !> (PROVE PROOF-TREE
+ACL2(r) !><state>
+ACL2(r) !> "ACL2"
+ACL2(r) !> (:EXIT 1)
+ACL2(r) !> (PROVE PROOF-TREE
         WARNING OBSERVATION EVENT HISTORY)
-ACL2 !> T
-ACL2 !>GC-VERBOSE is not supported in this Common Lisp.
+ACL2(r) !> T
+ACL2(r) !>GC-VERBOSE is not supported in this Common Lisp.
 Contact the ACL2 developers if you would like to help add such support.
 NIL
-ACL2 !> T
-ACL2 !>
+ACL2(r) !> T
+ACL2(r) !>
 Project-dir-alist:
-((:SYSTEM . "/workspace/scratch/fbe6ac8cde8b/validation/acl2/books/")).
+((:SYSTEM . "/opt/acl2r/books/")).
 Type :help for help.
 Type (quit) to quit completely out of ACL2.
 
-ACL2 !>> "ACL2"
-ACL2 !>>Bye.
+ACL2(r) !>> "ACL2"
+ACL2(r) !>>Bye.
  :EOF
-ACL2 !> :CONTINUE
-ACL2 !>
+ACL2(r) !> :CONTINUE
+ACL2(r) !>
 Summary
-Form:  ( INCLUDE-BOOK "rational-defs" ...)
-Rules: NIL
-Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
-"/workspace/scratch/fbe6ac8cde8b/basel-acl2/rational-defs.lisp"
-
-Summary
-Form:  ( DEFUN BQ-ACL2R-EXPORT-CP ...)
-Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
-Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
-BQ-ACL2R-EXPORT-CP
-:PASSED
-
-TTAG NOTE: Adding ttag :BASEL-ACL2R-FINITE-BOUNDS from book /workspace/scratch/fbe6ac8cde8b/basel-acl2/trusted-bridge.
-:BASEL-ACL2R-FINITE-BOUNDS
-
-Summary
-Form:  ( DEFLABEL BQ-ACL2R-EXPORT-CP$LABEL ...)
-Rules: NIL
-Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
-BQ-ACL2R-EXPORT-CP$LABEL
-
-Summary
-Form:  ( TABLE TRUSTED-CL-PROC-TABLE ...)
-Rules: NIL
-Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
-TRUSTED-CL-PROC-TABLE
-
-TTAG NOTE: Adding ttag :BASEL-ACL2R-FINITE-BOUNDS from book /workspace/scratch/fbe6ac8cde8b/basel-acl2/trusted-bridge.
-
-Summary
-Form:  ( ENCAPSULATE NIL (ASSERT-EVENT ...) ...)
-Rules: NIL
-Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
-T
-
-Summary
-Form:  ( DEFTHM BQ-IMPORTED-ODD-ENCLOSURE ...)
-Rules: NIL
-Hint-events: ((:CLAUSE-PROCESSOR BQ-ACL2R-EXPORT-CP))
-Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
-BQ-IMPORTED-ODD-ENCLOSURE
-:PASSED
-:PASSED
-:PASSED
-:PASSED
-:PASSED
-
-
-
-Summary
-Form:  (CERTIFY-BOOK "trusted-bridge" ...)
+Form:  ( INCLUDE-BOOK "transfer" ...)
 Rules: NIL
 Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+"build/acl2r/transfer.lisp"
+
+Summary
+Form:  ( DEFUN RATIONAL-DOUBLE ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION IFIX))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+RATIONAL-DOUBLE
+
+Summary
+Form:  ( DEFTHM DOUBLE-IS-RATIONAL ...)
+Rules: ((:TYPE-PRESCRIPTION RATIONAL-DOUBLE))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+DOUBLE-IS-RATIONAL
+
+Summary
+Form:  ( DEFUN PORTABLE-HALF ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION IFIX))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+PORTABLE-HALF
+
+Summary
+Form:  ( DEFUN PORTABLE-HELPER ...)
+Rules: ((:TYPE-PRESCRIPTION PORTABLE-HALF))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+PORTABLE-HELPER
+
+Summary
+Form:  ( DEFTHM HELPER-RATIONAL ...)
+Rules: ((:TYPE-PRESCRIPTION PORTABLE-HELPER))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+HELPER-RATIONAL
+
+Summary
+Form:  ( DEFTHM HALF-RATIONAL ...)
+Rules: ((:TYPE-PRESCRIPTION PORTABLE-HALF))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+HALF-RATIONAL
+
+Summary
+Form:  ( ENCAPSULATE ((PORTABLE-HALF ...) ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+PORTABLE-HALF
+
+Summary
+Form:  ( PROGN (DEFUN RATIONAL-DOUBLE ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+PORTABLE-HALF
+
+Summary
+Form:  ( TABLE R2A-EXPORTS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+
+Summary
+Form:  ( MAKE-EVENT (R2A-RECORD-EXPORT ...))
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+R2A-EXPORTS
+
+Summary
+Form:  ( PROGN (PROGN ...) ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+
+Summary
+Form:  ( MAKE-EVENT (R2A-EXPORT-FN ...))
+Rules: NIL
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
+R2A-EXPORTS
+
+
+
+Summary
+Form:  (CERTIFY-BOOK "example-export" ...)
+Rules: NIL
+Time:  0.03 seconds (prove: 0.00, print: 0.00, other: 0.03)
 ; (EV-REC *RETURN-LAST-ARG3* ...) took 
-; 0.01 seconds realtime, 0.01 seconds runtime
-; (5,372,256 bytes allocated).
+; 0.03 seconds realtime, 0.02 seconds runtime
+; (5,411,584 bytes allocated).
 Exit code from ACL2 is 43
--rw-r--r-- 1 agent agent 1023 Nov 17 13:43 trusted-bridge.cert
+-rw-r--r-- 1 root root 1556 Nov 20 01:25 example-export.cert

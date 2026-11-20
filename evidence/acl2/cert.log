@@ -1,0 +1,21 @@
+System books directory is /opt/acl2/books
+Making build/acl2/rational-defs.cert on 20-Nov-2026 01:25:44.200
+Making build/acl2/transfer.cert on 20-Nov-2026 01:25:44.229
+[32mBuilt build/acl2/rational-defs.cert (0.124s) at 20-Nov-2026 01:25:44.327[0m
+[32mBuilt build/acl2/transfer.cert (0.522s) at 20-Nov-2026 01:25:44.769[0m
+Making build/acl2/basel-import.cert on 20-Nov-2026 01:25:44.830
+Making build/acl2/rational-proofs.cert on 20-Nov-2026 01:25:44.831
+[32mBuilt build/acl2/basel-import.cert (0.214s) at 20-Nov-2026 01:25:45.051[0m
+Making build/acl2/example-import.cert on 20-Nov-2026 01:25:45.113
+[32mBuilt build/acl2/example-import.cert (0.267s) at 20-Nov-2026 01:25:45.386[0m
+Making build/acl2/transfer-tests.cert on 20-Nov-2026 01:25:45.453
+[32mBuilt build/acl2/transfer-tests.cert (0.189s) at 20-Nov-2026 01:25:45.650[0m
+[32mBuilt build/acl2/rational-proofs.cert (1.201s) at 20-Nov-2026 01:25:46.039[0m
+Making build/acl2/basel-rational.cert on 20-Nov-2026 01:25:46.071
+[32mBuilt build/acl2/basel-rational.cert (0.492s) at 20-Nov-2026 01:25:46.566[0m
+Making build/acl2/basel-interval.cert on 20-Nov-2026 01:25:46.628
+Making build/acl2/demo.cert on 20-Nov-2026 01:25:46.629
+[32mBuilt build/acl2/demo.cert (0.167s) at 20-Nov-2026 01:25:46.802[0m
+[32mBuilt build/acl2/basel-interval.cert (0.493s) at 20-Nov-2026 01:25:47.126[0m
+Making build/acl2/import-tests.cert on 20-Nov-2026 01:25:47.156
+[32mBuilt build/acl2/import-tests.cert (0.159s) at 20-Nov-2026 01:25:47.318[0m
