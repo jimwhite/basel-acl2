@@ -61,6 +61,11 @@ scripts/acl2r-certify.sh   # basel-export example-export export-tests transfer-t
 scripts/acl2-certify.sh    # basel-interval demo example-import import-tests transfer-tests
 ```
 
+The ACL2 script copies the ACL2(r) certificates of the export books,
+`basel-export.cert` and `example-export.cert`, from `build/acl2r/` beside
+the sources in `build/acl2/`. The importer requires them (see below), so run
+the ACL2(r) script first.
+
 Books for only one flavor are marked with the community `cert_param`
 comments `(uses-acl2r)` or `(non-acl2r)`. Importing books, and the books
 that include them, have a `.acl2` file containing
@@ -127,14 +132,28 @@ supporters and tag `:acl2r-checked-transfer`. Definitions are admitted
 normally. The auxiliary predicates, processors, and supporting facts are
 local, so they cannot outlive the local definitions on which they rely.
 
-Ordinary ACL2 does not recheck the ACL2(r) proof. It trusts that the named
-export book certifies in ACL2(r) with the same `transfer` code. Run
-`scripts/acl2r-certify.sh` on the same sources before relying on an import.
-The export-book shape keeps other events from influencing the source proof.
-The trust obligation covers the source checker, the event generator, the
-ACL2(r) certification of the export book, and the correspondence of
-definitions across the two systems. Do not populate the `r2a-exports` table
-manually.
+Ordinary ACL2 does not recheck the ACL2(r) proof. Instead, after checking
+the source, the importer reads the export book's certificate, `BOOK.cert`
+beside `BOOK.lisp`, and rejects the import unless all of the following hold:
+
+- ACL2(r) wrote it: its version string ends in `(r)`.
+- It records the export book being imported, with the same file length, and
+  the sibling `transfer.lisp`, with the same length as the one beside the
+  source.
+- No book in its include-book records, local or not, has skipped proofs,
+  added axioms, or trust tags.
+- Its make-event expansion records `(table r2a-exports 'NAME 'INTERFACE)`
+  with the same name and stripped interface that the importer computed from
+  the source, up to the directory of included sibling books.
+
+This checks the certificate the same way `include-book` does: it trusts the
+contents of the `.cert` file and does not recheck its hash. A certificate
+written with checksums (`ACL2_BOOK_HASH_ALISTP=NIL`) is accepted without the
+length checks; the interface comparison still applies. The export-book shape
+keeps other events from influencing the source proof. The trust obligation
+covers the source checker, the event generator, the integrity of the ACL2(r)
+certificate, and the correspondence of definitions across the two systems.
+Do not populate the `r2a-exports` table manually.
 
 ## Why the restrictions matter
 
@@ -179,10 +198,9 @@ the following trust remains:
   A trusted clause processor formally promises provability in the receiving
   ACL2 theory. Bridging that gap is a conservativity claim that this project
   argues but does not prove.
-- The importer does not verify that the export book was certified in
-  ACL2(r). It checks only the book's shape and interface. Certifying with
-  `scripts/acl2r-certify.sh` first is part of the trust obligation. A future
-  hardening is to check the ACL2(r) certificate.
+- The ACL2(r) certificate check (see above) trusts the certificate file,
+  as ACL2 does for every included book. File lengths are a weak identity
+  check; the interface comparison is the strong one.
 - Some operators, such as `rfix`, have different definitions in the two
   systems that agree on ordinary ACL2 objects. Extending the operator list
   requires the same agreement check.

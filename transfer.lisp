@@ -712,15 +712,233 @@
                                               state)))
             (value (cons (cadr export) interface)))))))))
 
+;;; Ordinary ACL2: evidence that ACL2(r) certified the export book
+;
+; The importer requires BOOK.cert, the certificate that ACL2(r) wrote for the
+; export book, and checks it against the source just read and checked.  Like
+; INCLUDE-BOOK, this trusts the certificate's contents; it does not recheck
+; the ACL2(r) proof.
+
+; The certificate records included books by names relative to the export
+; book; the importer names them relative to its connected book directory.
+(mutual-recursion
+ (defun r2a-rebase-event (event dir)
+   (declare (xargs :guard (stringp dir)))
+   (cond
+    ((not (and (consp event) (true-listp event))) event)
+    ((and (eq (car event) 'include-book) (consp (cdr event))
+          (stringp (cadr event)))
+     (list* 'include-book (string-append dir (cadr event)) (cddr event)))
+    ((and (eq (car event) 'local) (consp (cdr event)))
+     (list* 'local (r2a-rebase-event (cadr event) dir) (cddr event)))
+    ((and (eq (car event) 'encapsulate) (consp (cdr event)))
+     (list* 'encapsulate (cadr event) (r2a-rebase-events (cddr event) dir)))
+    (t event)))
+ (defun r2a-rebase-events (events dir)
+   (declare (xargs :guard (stringp dir)))
+   (if (atom events) events
+     (cons (r2a-rebase-event (car events) dir)
+           (r2a-rebase-events (cdr events) dir)))))
+
+(defun r2a-acl2r-version-p (version)
+  (declare (xargs :guard t))
+  (and (stringp version)
+       (<= 3 (length version))
+       (equal (subseq version (- (length version) 3) (length version))
+              "(r)")))
+
+(defun r2a-clean-annotation-p (key annotations)
+  (declare (xargs :guard (alistp annotations)))
+  (let ((pair (assoc-equal key annotations)))
+    (and (consp pair) (null (cdr pair)))))
+
+; An include-book-alist entry (FULL USER FAMILIAR ANNOTATIONS . HASH),
+; possibly wrapped in LOCAL, recording no skipped proofs, axioms, or ttags.
+(defun r2a-clean-entry-p (entry)
+  (declare (xargs :guard t))
+  (let ((e (if (and (consp entry) (eq (car entry) 'local)
+                    (consp (cdr entry)))
+               (cadr entry)
+             entry)))
+    (and (consp e) (consp (cdr e)) (consp (cddr e)) (consp (cdddr e))
+         (alistp (cadddr e))
+         (r2a-clean-annotation-p :skipped-proofsp (cadddr e))
+         (r2a-clean-annotation-p :axiomsp (cadddr e))
+         (r2a-clean-annotation-p :ttags (cadddr e)))))
+
+(defun r2a-clean-entries-p (entries)
+  (declare (xargs :guard t))
+  (if (atom entries) (null entries)
+    (and (r2a-clean-entry-p (car entries))
+         (r2a-clean-entries-p (cdr entries)))))
+
+; The non-LOCAL entry for the book with full name FULL.
+(defun r2a-find-entry (full entries)
+  (declare (xargs :guard t))
+  (cond ((atom entries) nil)
+        ((and (consp (car entries)) (equal (caar entries) full))
+         (car entries))
+        (t (r2a-find-entry full (cdr entries)))))
+
+; HASH is the default book-hash alist and records LENGTH, or a checksum.
+(defun r2a-hash-length-p (hash length)
+  (declare (xargs :guard t))
+  (if (alistp hash)
+      (and (natp length)
+           (equal (cdr (assoc-equal :book-length hash)) length))
+    (integerp hash)))
+
+; Does the expansion alist record the export of NAME with stripped interface
+; IFACE, up to the directory DIR of included books?
+(defun r2a-recorded-export-p (name iface dir alist)
+  (declare (xargs :guard (stringp dir)))
+  (cond
+   ((atom alist) nil)
+   ((let ((x (and (consp (car alist)) (cdar alist))))
+      (and (true-listp x) (equal (len x) 3) (eq (car x) 'progn)
+           (consp (cadr x)) (eq (car (cadr x)) 'progn)
+           (let ((tbl (caddr x)))
+             (and (true-listp tbl) (equal (len tbl) 4)
+                  (eq (car tbl) 'table) (eq (cadr tbl) 'r2a-exports)
+                  (equal (caddr tbl) (list 'quote name))
+                  (let ((q (cadddr tbl)))
+                    (and (true-listp q) (equal (len q) 2) (eq (car q) 'quote)
+                         (equal (r2a-rebase-events (cadr q) dir)
+                                iface)))))))
+    t)
+   (t (r2a-recorded-export-p name iface dir (cdr alist)))))
+
+; TAIL follows :END-PORTCULLIS-CMDS.  Return (mv ok expansion-alist
+; pre-alist post-alist); see MAKE-CERTIFICATE-FILE1 in the ACL2 sources.
+(defun r2a-cert-sections (tail)
+  (declare (xargs :guard t))
+  (let* ((exp-p (and (consp tail) (eq (car tail) :expansion-alist)
+                     (consp (cdr tail))))
+         (ea (and exp-p (cadr tail)))
+         (tail (if exp-p (cddr tail) tail))
+         (tail (if (and (consp tail) (eq (car tail) :cert-data)
+                        (consp (cdr tail)))
+                   (cddr tail)
+                 tail)))
+    ; Exactly a pre-alist, a post-alist, and a certificate hash.
+    (if (and (true-listp tail) (equal (len tail) 3))
+        (mv t ea (car tail) (cadr tail))
+      (mv nil nil nil nil))))
+
+; NIL if FORMS, the objects of BOOK.cert, show that ACL2(r) certified the
+; export book BOOK, BOOK-LENGTH bytes long, exporting NAME with the stripped
+; interface IFACE and using a sibling transfer book TRANSFER-LENGTH bytes long,
+; with no skipped proofs, axioms, or trust tags; otherwise a reason.
+(defun r2a-certificate-error (forms book name iface book-length
+                                    transfer-length)
+  (declare (xargs :guard (stringp book)))
+  (let ((dir (r2a-directory-part book))
+        (tail (and (true-listp forms)
+                   (cdr (member-equal :end-portcullis-cmds forms)))))
+    (mv-let (ok ea pre post) (r2a-cert-sections tail)
+      (let* ((self (and (consp post) (car post)))
+             (full (and (consp self) (car self))))
+        (cond
+         ((not (and (consp forms) (equal (car forms) '(in-package "ACL2"))
+                    (consp (cdr forms))))
+          "is not a certificate")
+         ((not (r2a-acl2r-version-p (cadr forms)))
+          "was not written by ACL2(r)")
+         ((not ok) "is not a certificate in the expected format")
+         ((not (and (r2a-clean-entries-p pre) (r2a-clean-entries-p post)))
+          "records skipped proofs, added axioms, or trust tags")
+         ((not (and (consp self) (stringp full)
+                    (consp (cdr self)) (consp (cddr self))
+                    (stringp (caddr self))
+                    (equal (string-append dir (caddr self)) book)
+                    (consp (cdddr self))
+                    (r2a-hash-length-p (cddddr self) book-length)))
+          "does not record the current export book")
+         ((not (let ((tr (r2a-find-entry
+                          (string-append (r2a-directory-part full)
+                                         "transfer.lisp")
+                          post)))
+                 (and (consp tr) (consp (cdr tr)) (consp (cddr tr))
+                      (consp (cdddr tr))
+                      (r2a-hash-length-p (cddddr tr) transfer-length))))
+          "does not record the sibling transfer book")
+         ((not (r2a-recorded-export-p name iface dir ea))
+          "does not record this export and interface")
+         (t nil))))))
+
+(local
+ (defthm state-p1-of-file-length$
+   (implies (state-p1 state)
+            (state-p1 (mv-nth 1 (file-length$ file state))))))
+
+; Return EXPORT, (NAME . INTERFACE), if BOOK.cert records it.
+(defun r2a-check-certificate (book export state)
+  (declare (xargs :stobjs state :guard (stringp book)
+                  :guard-hints (("Goal" :in-theory
+                                 (disable r2a-certificate-error
+                                          r2a-directory-part
+                                          read-file-objects
+                                          file-length$)))))
+  (let ((name (and (consp export) (car export)))
+        (interface (and (consp export) (cdr export)))
+        (cbd (and (boundp-global 'connected-book-directory state)
+                  (f-get-global 'connected-book-directory state))))
+    (if (not (stringp cbd))
+        (r2a-fail 'r2a-import
+                  (msg "The connected book directory is not set.")
+                  state)
+      (let ((path (string-append cbd book)))
+        (mv-let (book-length state)
+          (file-length$ (string-append path ".lisp") state)
+          (mv-let (transfer-length state)
+            (file-length$ (string-append (string-append
+                                          cbd (r2a-directory-part book))
+                                         "transfer.lisp")
+                          state)
+            (mv-let (forms state)
+              (read-file-objects (string-append path ".cert") state)
+              (let ((err (if (stringp forms)
+                             "cannot be read"
+                           (r2a-certificate-error
+                            forms book name (r2a-strip-proofs interface)
+                            book-length transfer-length))))
+                (if err
+                    (r2a-fail 'r2a-import
+                              (msg "~s0.cert ~@1.  Import only export books ~
+                                    certified by ACL2(r) from these sources."
+                                   book err)
+                              state)
+                  (value export))))))))))
+
+(local
+ (defthm state-p1-of-r2a-source-export
+   (implies (state-p1 state)
+            (state-p1 (mv-nth 2 (r2a-source-export book state))))))
+
+(local
+ (defthm state-p1-of-r2a-check-certificate
+   (implies (state-p1 state)
+            (state-p1 (mv-nth 2 (r2a-check-certificate book export state))))
+   :hints (("Goal" :in-theory (disable r2a-certificate-error
+                                       read-file-objects file-length$)))))
+
 (defun r2a-import-fn (book state)
-  (declare (xargs :stobjs state))
+  (declare (xargs :stobjs state
+                  :guard-hints (("Goal" :in-theory
+                                 (disable r2a-source-export
+                                          r2a-check-certificate)))))
   (if *r2a-real-build*
       (r2a-fail 'r2a-import (msg "Run the importer in ordinary ACL2.") state)
-    (er-let* ((export (r2a-source-export book state)))
-      (value `(progn
-                ,@(r2a-import-events (cdr export) nil)
-                (table r2a-exports ',(car export)
-                       ',(r2a-strip-proofs (cdr export))))))))
+    (er-let* ((export (r2a-source-export book state))
+              (export (if (stringp book)
+                          (r2a-check-certificate book export state)
+                        (r2a-fail 'r2a-import (msg "Bad book name.") state))))
+      (if (atom export)
+          (r2a-fail 'r2a-import (msg "No export found.") state)
+        (value `(progn
+                  ,@(r2a-import-events (cdr export) nil)
+                  (table r2a-exports ',(car export)
+                         ',(r2a-strip-proofs (cdr export)))))))))
 
 (defmacro r2a-import (book)
   `(make-event (r2a-import-fn ,book state)))
