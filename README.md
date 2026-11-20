@@ -12,15 +12,13 @@ finite-sum arguments and executable interval are proved. The transfer uses
 the trust tag `:acl2r-checked-transfer`; it is not a verified general-purpose
 importer. Read [TRANSFER.md](TRANSFER.md) before relying on that boundary.
 
-The checked-in `basel.r2a` file is a project-specific transfer receipt. The
-`.r2a` suffix is not an ACL2 standard, and the file is neither an ACL2 book
-nor a proof certificate: it is a versioned, ACL2-readable data object
-containing the selected portable events. Ordinary ACL2 reads it through the
-project's importer, which checks the event interface before admitting the
-events under the documented trust boundary. It does not independently verify
-the ACL2(r) source proof. The separate receipt format makes this cross-logic
-handoff distinct from ordinary ACL2 book and certificate files; the suffix
-itself provides no security.
+There is no intermediate export file. ACL2(r) certifies
+[`basel-export.lisp`](basel-export.lisp), a book whose only event is an
+`r2a-export` of the Basel development. Ordinary ACL2 certifies
+[`basel-import.lisp`](basel-import.lisp), which calls
+`(r2a-import "basel-export")`: it reads the same source book, derives the
+same portable interface with the same code, checks it, and admits it. Both
+steps are ordinary book certifications driven by `cert.pl`.
 
 ## Quick start: use the dev container
 
@@ -31,30 +29,27 @@ certificate trees. You do not need to install SBCL or ACL2 on the host.
    create a Codespace from the repository.
 2. Choose **Dev Containers: Reopen in Container** if VS Code has not already
    opened the repository in its container. Wait for the image build to finish.
-3. In the container terminal, certify and evaluate the ordinary ACL2 client:
+3. In the container terminal, certify both sides, ACL2(r) first:
 
    ```sh
+   scripts/acl2r-certify.sh
    scripts/acl2-certify.sh
    ```
 
-`scripts/acl2-certify.sh` uses the checked-in `basel.r2a`; it does not
-generate `build/acl2r/new-basel.r2a`. To regenerate that receipt and certify
-the ordinary ACL2 books with it, run these two commands in order:
-
-```sh
-scripts/acl2r-reproduce.sh
-scripts/acl2-certify.sh build/acl2r/new-basel.r2a
-```
+The ACL2(r) step proves the analytic source development (about 70 seconds)
+and runs the export tests. The ACL2 step imports the export and certifies
+the clients and import tests. All checks are in the books; each script just
+runs `cert.pl` on a fresh copy of the sources.
 
 The first container build downloads and compiles the dependencies. It needs
 at least 2 CPUs, 8 GB of memory, and 32 GB of storage; allow roughly
 10–25 minutes for the initial build. The built image is about 5.2 GB.
 
-The scripts keep certificates separate by building in fresh, ignored
-directories under `build/acl2r/` and `build/acl2/`. They print PASS/FAIL
-results, write logs under `build/*/logs/`, and return a nonzero exit status
-if a check fails. The scripts recreate their respective build directories,
-so keep any files you need from those directories elsewhere.
+ACL2 and ACL2(r) both write `.cert` files for the shared books (`transfer`,
+`rational-defs`), so the scripts certify in separate fresh, ignored
+directories, `build/acl2r/` and `build/acl2/`, and write `cert.log` there.
+They recreate those directories on each run, and return a nonzero status if
+certification fails.
 
 To try the interval interactively after running the ordinary certification:
 
@@ -66,7 +61,7 @@ acl2
 At the ACL2 prompt, load the client and evaluate an interval:
 
 ```lisp
-(include-book "basel-interval" :ttags (:acl2r-checked-transfer))
+(include-book "basel-interval" :ttags ((:acl2r-checked-transfer)))
 (bq-basel-interval 100000000000000000000)
 ```
 

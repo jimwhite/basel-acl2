@@ -1,0 +1,15 @@
+System books directory is /opt/acl2r/books
+Making build/acl2r/transfer.cert on 20-Nov-2026 01:25:44.509
+Making build/acl2r/rational-defs.cert on 20-Nov-2026 01:25:44.533
+[32mBuilt build/acl2r/rational-defs.cert (0.200s) at 20-Nov-2026 01:25:44.739[0m
+[32mBuilt build/acl2r/transfer.cert (0.512s) at 20-Nov-2026 01:25:45.029[0m
+Making build/acl2r/basel-analytic.cert on 20-Nov-2026 01:25:45.109
+Making build/acl2r/example-export.cert on 20-Nov-2026 01:25:45.117
+[32mBuilt build/acl2r/example-export.cert (0.278s) at 20-Nov-2026 01:25:45.408[0m
+Making build/acl2r/transfer-tests.cert on 20-Nov-2026 01:25:45.474
+[32mBuilt build/acl2r/transfer-tests.cert (0.203s) at 20-Nov-2026 01:25:45.685[0m
+[31mBuilt build/acl2r/basel-analytic.cert (70.598s) at 20-Nov-2026 01:26:55.714[0m
+Making build/acl2r/basel-export.cert on 20-Nov-2026 01:26:55.744
+[32mBuilt build/acl2r/basel-export.cert (0.360s) at 20-Nov-2026 01:26:56.106[0m
+Making build/acl2r/export-tests.cert on 20-Nov-2026 01:26:56.136
+[32mBuilt build/acl2r/export-tests.cert (0.275s) at 20-Nov-2026 01:26:56.415[0m
