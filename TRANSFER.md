@@ -152,10 +152,43 @@ witnesses is therefore essential, and the post-encapsulate vocabulary
 restriction prevents later transfers from relying on an unsound
 interpretation of the abstraction.
 
-The checker is ACL2 `:program` code. This project tests the accepted and
-rejected cases, but does not prove the checker's soundness or prove a general
-conservativity result. Extending the syntax or changing the abstract-function
-policy requires a new soundness review and regression tests.
+All of `transfer` is in `:logic` mode with verified guards, and it uses
+no trust tags of its own. Termination of every function is proved,
+including the include-book expansion. That expansion fails closed after
+`*r2a-max-include-depth*` nested books. Execution cannot leave the guard
+domain, so no part of the checker or generator relies on unchecked raw Lisp
+behavior. The code avoids `:program` system functions such as `translate`
+and `extend-pathname`. Free variables come from a small proved-terminating
+term walker. If that walker is wrong, the generated predicate either fails to
+be admitted or fails to match the theorem, and the import is rejected. The
+book also proves the vocabulary policy as theorems:
+
+- `r2a-termp-applies-only-vocabulary`: an accepted term applies only the
+  reviewed operators and the supplied portable functions.
+- `r2a-local-exports-nothing`: a `local` event adds no function to the
+  vocabulary.
+- `r2a-nontrivial-encapsulate-keeps-vocabulary`: an encapsulate with
+  signatures leaves the vocabulary unchanged.
+
+Logic mode does not make the trusted clause processors sound by itself, and
+the following trust remains:
+
+- The transfer argument is semantic. The reviewed operators agree on ordinary
+  ACL2 objects in both systems and are closed over them. A checked formula
+  true in every ACL2(r) model is therefore true over the ACL2 universe.
+  A trusted clause processor formally promises provability in the receiving
+  ACL2 theory. Bridging that gap is a conservativity claim that this project
+  argues but does not prove.
+- The importer does not verify that the export book was certified in
+  ACL2(r). It checks only the book's shape and interface. Certifying with
+  `scripts/acl2r-certify.sh` first is part of the trust obligation. A future
+  hardening is to check the ACL2(r) certificate.
+- Some operators, such as `rfix`, have different definitions in the two
+  systems that agree on ordinary ACL2 objects. Extending the operator list
+  requires the same agreement check.
+
+Extending the syntax or changing the abstract-function policy requires a new
+soundness review and regression tests.
 
 For this Basel development, the transferred theorem bounds a finite odd
 reciprocal-square sum using rational endpoints. The analytic source helpers

@@ -30,6 +30,12 @@
       (local (defthm hidden-real (realp (acl2-pi))))))))
 
 ; Macro/event escape hatches and introduced constants fail closed.
+; Free variables of imported formulas, respecting LET and LET* scoping.
+(assert-event
+ (equal (r2a-term-vars '(let ((a x) (b y)) (+ a b z))) '(x y z)))
+(assert-event
+ (equal (r2a-term-vars '(let* ((a x) (b a)) (equal b (quote w)))) '(x)))
+
 (assert-event (r2a-interface-error '((make-event '(defthm bad nil)))))
 (assert-event (r2a-interface-error '((skip-proofs (defthm bad nil)))))
 ; The line break keeps cert.pl from scanning quoted data as a dependency.
