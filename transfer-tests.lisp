@@ -30,6 +30,12 @@
       (local (defthm hidden-real (realp (acl2-pi))))))))
 
 ; Macro/event escape hatches and introduced constants fail closed.
+; Free variables of imported formulas, respecting LET and LET* scoping.
+(assert-event
+ (equal (r2a-term-vars '(let ((a x) (b y)) (+ a b z))) '(x y z)))
+(assert-event
+ (equal (r2a-term-vars '(let* ((a x) (b a)) (equal b (quote w)))) '(x)))
+
 (assert-event (r2a-interface-error '((make-event '(defthm bad nil)))))
 (assert-event (r2a-interface-error '((skip-proofs (defthm bad nil)))))
 ; The line break keeps cert.pl from scanning quoted data as a dependency.
@@ -148,3 +154,94 @@
  (r2a-interface-error
   '((r2a-included-book "defs" (local (defun two () 2)))
     (defthm two-rational (rationalp (two))))))
+
+;;; Certificates checked by R2A-IMPORT, in the shape ACL2 writes them
+; Line breaks keep cert.pl from reading the quoted include-books.
+
+(defun r2a-test-cert (version annotations length transfer-length iface)
+  `((in-package "ACL2") ,version
+    :begin-portcullis-cmds :end-portcullis-cmds
+    :expansion-alist
+    ((2 progn (progn (local (value-triple :elided)))
+        (table r2a-exports 'ex ',iface)))
+    nil
+    (("/src/sub/ex.lisp" "ex" "ex" ,annotations
+      (:book-length . ,length) (:book-write-date . 1))
+     ("/src/sub/transfer.lisp" "transfer" "transfer"
+      ((:skipped-proofsp) (:axiomsp) (:ttags))
+      (:book-length . ,transfer-length) (:book-write-date . 1)))
+    :trivial-book-hash))
+
+(defconst *r2a-test-clean* '((:skipped-proofsp) (:axiomsp) (:ttags)))
+(defconst *r2a-test-iface*
+  '((include-book
+   "defs") (defthm fact (equal x x) :rule-classes nil)))
+
+; Accepted: names of included books are rebased onto the importer's path.
+(assert-event
+ (null (r2a-certificate-error
+        (r2a-test-cert "ACL2 Version 8.7(r)" *r2a-test-clean* 100 200
+                       *r2a-test-iface*)
+        "sub/ex" 'ex
+        '((include-book
+   "sub/defs") (defthm fact (equal x x)
+                                      :rule-classes nil))
+        100 200)))
+; Rejected: written by ordinary ACL2, or records trust tags, skipped proofs,
+; or a different export, export book, or transfer book.
+(assert-event
+ (r2a-certificate-error
+  (r2a-test-cert "ACL2 Version 8.7" *r2a-test-clean* 100 200
+                 *r2a-test-iface*)
+  "sub/ex" 'ex '((include-book
+   "sub/defs")
+                 (defthm fact (equal x x) :rule-classes nil))
+  100 200))
+(assert-event
+ (r2a-certificate-error
+  (r2a-test-cert "ACL2 Version 8.7(r)" '((:skipped-proofsp) (:axiomsp)
+                                         (:ttags (:foo)))
+                 100 200 *r2a-test-iface*)
+  "sub/ex" 'ex '((include-book
+   "sub/defs")
+                 (defthm fact (equal x x) :rule-classes nil))
+  100 200))
+(assert-event
+ (r2a-certificate-error
+  (r2a-test-cert "ACL2 Version 8.7(r)" '((:skipped-proofsp . t) (:axiomsp)
+                                         (:ttags))
+                 100 200 *r2a-test-iface*)
+  "sub/ex" 'ex '((include-book
+   "sub/defs")
+                 (defthm fact (equal x x) :rule-classes nil))
+  100 200))
+(assert-event
+ (r2a-certificate-error
+  (r2a-test-cert "ACL2 Version 8.7(r)" *r2a-test-clean* 100 200
+                 '((defthm fact (equal x y) :rule-classes nil)))
+  "sub/ex" 'ex '((defthm fact (equal x x) :rule-classes nil))
+  100 200))
+(assert-event
+ (r2a-certificate-error
+  (r2a-test-cert "ACL2 Version 8.7(r)" *r2a-test-clean* 100 200
+                 *r2a-test-iface*)
+  "sub/ex" 'other '((include-book
+   "sub/defs")
+                    (defthm fact (equal x x) :rule-classes nil))
+  100 200))
+(assert-event
+ (r2a-certificate-error
+  (r2a-test-cert "ACL2 Version 8.7(r)" *r2a-test-clean* 100 200
+                 *r2a-test-iface*)
+  "sub/ex" 'ex '((include-book
+   "sub/defs")
+                 (defthm fact (equal x x) :rule-classes nil))
+  101 200))
+(assert-event
+ (r2a-certificate-error
+  (r2a-test-cert "ACL2 Version 8.7(r)" *r2a-test-clean* 100 200
+                 *r2a-test-iface*)
+  "sub/ex" 'ex '((include-book
+   "sub/defs")
+                 (defthm fact (equal x x) :rule-classes nil))
+  100 201))

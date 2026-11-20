@@ -61,6 +61,11 @@ scripts/acl2r-certify.sh   # basel-export example-export export-tests transfer-t
 scripts/acl2-certify.sh    # basel-interval demo example-import import-tests transfer-tests
 ```
 
+The ACL2 script copies the ACL2(r) certificates of the export books,
+`basel-export.cert` and `example-export.cert`, from `build/acl2r/` beside
+the sources in `build/acl2/`. The importer requires them (see below), so run
+the ACL2(r) script first.
+
 Books for only one flavor are marked with the community `cert_param`
 comments `(uses-acl2r)` or `(non-acl2r)`. Importing books, and the books
 that include them, have a `.acl2` file containing
@@ -127,14 +132,28 @@ supporters and tag `:acl2r-checked-transfer`. Definitions are admitted
 normally. The auxiliary predicates, processors, and supporting facts are
 local, so they cannot outlive the local definitions on which they rely.
 
-Ordinary ACL2 does not recheck the ACL2(r) proof. It trusts that the named
-export book certifies in ACL2(r) with the same `transfer` code. Run
-`scripts/acl2r-certify.sh` on the same sources before relying on an import.
-The export-book shape keeps other events from influencing the source proof.
-The trust obligation covers the source checker, the event generator, the
-ACL2(r) certification of the export book, and the correspondence of
-definitions across the two systems. Do not populate the `r2a-exports` table
-manually.
+Ordinary ACL2 does not recheck the ACL2(r) proof. Instead, after checking
+the source, the importer reads the export book's certificate, `BOOK.cert`
+beside `BOOK.lisp`, and rejects the import unless all of the following hold:
+
+- ACL2(r) wrote it: its version string ends in `(r)`.
+- It records the export book being imported, with the same file length, and
+  the sibling `transfer.lisp`, with the same length as the one beside the
+  source.
+- No book in its include-book records, local or not, has skipped proofs,
+  added axioms, or trust tags.
+- Its make-event expansion records `(table r2a-exports 'NAME 'INTERFACE)`
+  with the same name and stripped interface that the importer computed from
+  the source, up to the directory of included sibling books.
+
+This checks the certificate the same way `include-book` does: it trusts the
+contents of the `.cert` file and does not recheck its hash. A certificate
+written with checksums (`ACL2_BOOK_HASH_ALISTP=NIL`) is accepted without the
+length checks; the interface comparison still applies. The export-book shape
+keeps other events from influencing the source proof. The trust obligation
+covers the source checker, the event generator, the integrity of the ACL2(r)
+certificate, and the correspondence of definitions across the two systems.
+Do not populate the `r2a-exports` table manually.
 
 ## Why the restrictions matter
 
@@ -152,10 +171,42 @@ witnesses is therefore essential, and the post-encapsulate vocabulary
 restriction prevents later transfers from relying on an unsound
 interpretation of the abstraction.
 
-The checker is ACL2 `:program` code. This project tests the accepted and
-rejected cases, but does not prove the checker's soundness or prove a general
-conservativity result. Extending the syntax or changing the abstract-function
-policy requires a new soundness review and regression tests.
+All of `transfer` is in `:logic` mode with verified guards, and it uses
+no trust tags of its own. Termination of every function is proved,
+including the include-book expansion. That expansion fails closed after
+`*r2a-max-include-depth*` nested books. Execution cannot leave the guard
+domain, so no part of the checker or generator relies on unchecked raw Lisp
+behavior. The code avoids `:program` system functions such as `translate`
+and `extend-pathname`. Free variables come from a small proved-terminating
+term walker. If that walker is wrong, the generated predicate either fails to
+be admitted or fails to match the theorem, and the import is rejected. The
+book also proves the vocabulary policy as theorems:
+
+- `r2a-termp-applies-only-vocabulary`: an accepted term applies only the
+  reviewed operators and the supplied portable functions.
+- `r2a-local-exports-nothing`: a `local` event adds no function to the
+  vocabulary.
+- `r2a-nontrivial-encapsulate-keeps-vocabulary`: an encapsulate with
+  signatures leaves the vocabulary unchanged.
+
+Logic mode does not make the trusted clause processors sound by itself, and
+the following trust remains:
+
+- The transfer argument is semantic. The reviewed operators agree on ordinary
+  ACL2 objects in both systems and are closed over them. A checked formula
+  true in every ACL2(r) model is therefore true over the ACL2 universe.
+  A trusted clause processor formally promises provability in the receiving
+  ACL2 theory. Bridging that gap is a conservativity claim that this project
+  argues but does not prove.
+- The ACL2(r) certificate check (see above) trusts the certificate file,
+  as ACL2 does for every included book. File lengths are a weak identity
+  check; the interface comparison is the strong one.
+- Some operators, such as `rfix`, have different definitions in the two
+  systems that agree on ordinary ACL2 objects. Extending the operator list
+  requires the same agreement check.
+
+Extending the syntax or changing the abstract-function policy requires a new
+soundness review and regression tests.
 
 For this Basel development, the transferred theorem bounds a finite odd
 reciprocal-square sum using rational endpoints. The analytic source helpers

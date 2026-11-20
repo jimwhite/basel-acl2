@@ -37,9 +37,11 @@ certificate trees. You do not need to install SBCL or ACL2 on the host.
    ```
 
 The ACL2(r) step proves the analytic source development (about 70 seconds)
-and runs the export tests. The ACL2 step imports the export and certifies
-the clients and import tests. All checks are in the books; each script just
-runs `cert.pl` on a fresh copy of the sources.
+and runs the export tests. The ACL2 step checks the ACL2(r) certificates of
+the export books, imports the exports, and certifies the clients and import
+tests. All checks are in the books. Each script runs `cert.pl` on a fresh
+copy of the sources; the ACL2 script also copies in the export books' ACL2(r)
+certificates.
 
 The first container build downloads and compiles the dependencies. It needs
 at least 2 CPUs, 8 GB of memory, and 32 GB of storage; allow roughly

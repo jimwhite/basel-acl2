@@ -43,34 +43,44 @@
 ; Events of FORMS before upstream's (local (defthmd big-upper-bound ...)).
 (local
  (defun bq-upstream-prefix (forms)
-  (declare (xargs :mode :program))
-  (cond ((endp forms) :missing-cutoff)
-        ((and (eq (car (car forms)) 'local)
-              (eq (car (cadr (car forms))) 'defthmd)
-              (eq (cadr (cadr (car forms))) 'big-upper-bound))
-         nil)
-        (t (let ((rest (bq-upstream-prefix (cdr forms))))
-             (if (eq rest :missing-cutoff) rest
-               (cons (car forms) rest)))))))
+   (declare (xargs :guard t))
+   (cond ((atom forms) :missing-cutoff)
+         ((and (consp (car forms))
+               (eq (car (car forms)) 'local)
+               (consp (cdr (car forms)))
+               (consp (cadr (car forms)))
+               (eq (car (cadr (car forms))) 'defthmd)
+               (consp (cdr (cadr (car forms))))
+               (eq (cadr (cadr (car forms))) 'big-upper-bound))
+          nil)
+         (t (let ((rest (bq-upstream-prefix (cdr forms))))
+              (if (eq rest :missing-cutoff) rest
+                (cons (car forms) rest)))))))
 
 ; Fail closed if upstream changes shape.
 (local
  (defun bq-upstream-events (state)
-  (declare (xargs :mode :program :stobjs state))
-  (er-let* ((forms (r2a-read-book
-                    (concatenate 'string
-                                 (project-dir-lookup :system
-                                                     (project-dir-alist (w state))
-                                                     nil)
-                                 "nonstd/basel/basel-series.lisp")
-                    state)))
-    (let* ((n (len *bq-upstream-header*))
-           (prefix (bq-upstream-prefix (nthcdr n forms))))
-      (cond ((not (equal (take n forms) *bq-upstream-header*))
-             (er soft 'bq-upstream-events "Unexpected upstream header."))
-            ((eq prefix :missing-cutoff)
-             (er soft 'bq-upstream-events "Missing upstream cutoff."))
-            (t (value (cons 'progn prefix))))))))
+   (declare (xargs :stobjs state
+                   :guard (plist-worldp (w state))
+                   :guard-hints (("Goal" :in-theory
+                                  (disable r2a-read-book)))))
+   (let ((dir (project-dir-lookup :system (project-dir-alist (w state)) nil)))
+     (if (not (stringp dir))
+         (r2a-fail 'bq-upstream-events (msg "No :system book directory.")
+                   state)
+       (er-let* ((forms (r2a-read-book
+                         (string-append dir "nonstd/basel/basel-series.lisp")
+                         state)))
+         (let* ((n (len *bq-upstream-header*))
+                (prefix (bq-upstream-prefix (nthcdr n (true-list-fix forms)))))
+           (cond ((not (and (true-listp forms)
+                            (equal (take n forms) *bq-upstream-header*)))
+                  (r2a-fail 'bq-upstream-events
+                            (msg "Unexpected upstream header.") state))
+                 ((eq prefix :missing-cutoff)
+                  (r2a-fail 'bq-upstream-events
+                            (msg "Missing upstream cutoff.") state))
+                 (t (value (cons 'progn prefix))))))))))
 
 (make-event (bq-upstream-events state))
 

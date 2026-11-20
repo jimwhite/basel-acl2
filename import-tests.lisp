@@ -24,5 +24,7 @@
 (must-fail (r2a-import "import-fixtures/extra-event"))
 (must-fail (r2a-import "import-fixtures/witness"))
 (must-fail (r2a-import "import-fixtures/includes-nonportable"))
+; A well-formed export without an ACL2(r) certificate.
+(must-fail (r2a-import "import-fixtures/uncertified"))
 ; Not an export book at all.
 (must-fail (r2a-import "import-fixtures/nonportable"))
